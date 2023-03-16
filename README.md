@@ -11,7 +11,7 @@
 **应用：**
 
  - [x] [终端](https://github.com/zhayujie/bot-on-anything#1%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%BB%88%E7%AB%AF)
- - [ ] Web
+ - [x] [Web](https://github.com/zhayujie/bot-on-anything#9web)
  - [x] [个人微信](https://github.com/zhayujie/bot-on-anything#2%E4%B8%AA%E4%BA%BA%E5%BE%AE%E4%BF%A1)
  - [x] [订阅号](https://github.com/zhayujie/bot-on-anything#3%E4%B8%AA%E4%BA%BA%E8%AE%A2%E9%98%85%E5%8F%B7)
  - [x] [服务号](https://github.com/zhayujie/bot-on-anything#4%E4%BC%81%E4%B8%9A%E6%9C%8D%E5%8A%A1%E5%8F%B7)
@@ -21,6 +21,7 @@
  - [ ] 钉钉 
  - [ ] 飞书
  - [x] [Gmail](https://github.com/zhayujie/bot-on-anything#7gmail)
+ - [x] [Slack](https://github.com/zhayujie/bot-on-anything#8slack)
 
 # 快速开始
 
@@ -101,12 +102,16 @@ pip3 install --upgrade openai
    
     "openai": {
       "api_key": "YOUR API KEY",
+      "model": "gpt-3.5-turbo",                         # 模型名称
+      "proxy": "http://127.0.0.1:7890",
       "character_desc": "你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。"
     }
 }
 ```
  + `api_key`: 填入上面注册账号时创建的 `OpenAI API KEY`
-+ `character_desc`: 配置中保存着你对chatgpt说的一段话，他会记住这段话并作为他的设定，你可以为他定制任何人格      
+ + `model`: 模型名称，目前支持填入 `gpt-3.5-turbo`, `gpt-4`, `gpt-4-32k`  (其中gpt-4 api暂未开放)
+ + `proxy`: 代理客户端的地址，详情参考  [#56](https://github.com/zhayujie/bot-on-anything/issues/56)
+ + `character_desc`: 配置中保存着你对chatgpt说的一段话，他会记住这段话并作为他的设定，你可以为他定制任何人格
 
 ### 2.GPT-3.0
 
@@ -143,9 +148,18 @@ pip3 install --upgrade openai
 
 ### 2.个人微信
 
-与项目 [chatgpt-on-wechat](https://github.com/zhayujie/chatgpt-on-wechat) 的使用方式相同，目前接入个人微信可能导致账号被限制，暂时不建议使用。
+与项目 [chatgpt-on-wechat](https://github.com/zhayujie/chatgpt-on-wechat) 的使用方式相似。
 
-配置项说明：
+**安装依赖：**
+
+```bash
+pip3 install itchat-uos==1.5.0.dev0
+pip3 install --upgrade openai
+```
+注：`itchat-uos`使用指定版本1.5.0.dev0，`openai`使用最新版本，需高于0.27.0。
+
+
+**配置项说明：**
 
 ```bash
 "channel": {
@@ -289,7 +303,9 @@ python3 app.py    # 此时会监听8080端口
 cd channel/qq
 ./go-cqhttp
 ```
-注意：目前未设置任何 关键词匹配 及 群聊白名单，对所有私聊均会自动回复，在群聊中只要被@也会自动回复。
+注意：
++ 目前未设置任何 关键词匹配 及 群聊白名单，对所有私聊均会自动回复，在群聊中只要被@也会自动回复。
++ 如果出现 账号被冻结 等异常提示，可将 go-cqhttp 同目录下的 device.json 文件中`protocol`的值由5改为2，参考该[Issue](https://github.com/Mrs4s/go-cqhttp/issues/1942)。
 
 
 ### 6.Telegram
@@ -335,3 +351,83 @@ Follow [官方文档](https://support.google.com/mail/answer/185833?hl=en) to cr
     }
   }
 ```
+
+### 8.Slack
+
+**❉不再需要服务器以及公网 IP**
+
+**Contributor:** [amaoo](https://github.com/amaoo)
+
+**依赖**
+
+```bash
+pip3 install slack_bolt
+```
+
+**配置**
+
+```bash
+"channel": {
+    "type": "slack",
+    "slack": {
+      "slack_bot_token": "xoxb-xxxx",
+      "slack_app_token": "xapp-xxxx"
+    }
+  }
+```
+
+**设置机器人令牌范围 - OAuth & Permission**
+
+将 Bot User OAuth Token 写入配置文件 slack_bot_token
+
+```
+app_mentions:read
+chat:write
+```
+
+
+**开启 Socket 模式 - Socket Mode**
+
+如未创建应用级令牌，会提示创建
+将创建的 token 写入配置文件 slack_app_token
+
+
+**事件订阅(Event Subscriptions) - Subscribe to bot events**
+
+```
+app_mention
+```
+
+
+**参考文档**
+
+```
+https://slack.dev/bolt-python/tutorial/getting-started
+```
+
+### 9.Web
+
+**Contributor:** [RegimenArsenic](https://github.com/RegimenArsenic)
+
+**依赖**
+
+```bash
+pip3 install PyJWT flask
+```
+
+**配置**
+
+```bash
+"channel": {
+    "type": "http",
+    "http": {
+      "http_auth_secret_key": "6d25a684-9558-11e9-aa94-efccd7a0659b",    //jwt认证秘钥
+      "http_auth_password": "6.67428e-11",        //认证密码,仅仅只是自用,最初步的防御别人扫描端口后DDOS浪费tokens
+      "port": "80"       //端口
+    }
+  }
+```
+
+本地运行：`python3 app.py`运行后访问 `http://127.0.0.1:80`
+
+服务器运行：部署后访问 `http://公网域名或IP:端口`
