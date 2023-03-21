@@ -2,13 +2,21 @@
 
 import json
 import os
+import sys
+
+# 获取所有命令行参数
 
 config = {}
 
 
 def load_config():
     global config
-    config_path = "config.json"
+    args = sys.argv
+    if len(args) > 1:
+        config_path = args[1]
+    else:
+        config_path = "config.json"
+    print("读取配置 %s" % config_path)
     if not os.path.exists(config_path):
         raise Exception('配置文件不存在，请根据config-template.json模板创建config.json文件')
 
