@@ -13,11 +13,11 @@
       "cookie": "YOUR COOKIE"
     },
     "bing":{
-        "cookies":[]
+      "cookies":[]
+    }
   },
-
   "channel": {
-    "type": "terminal",
+    "type": ["terminal"],
     "single_chat_prefix": ["bot", "@bot"],
     "single_chat_reply_prefix": "[bot] ",
     "group_chat_prefix": ["@bot"],
@@ -28,11 +28,12 @@
     },
 
     "wechat": {
+      "receive_qrcode_api": ""
     },
 
     "wechat_mp": {
       "token": "YOUR TOKEN",
-      "port": "8088"
+      "port": "80"
     },
 
     "gmail": {
