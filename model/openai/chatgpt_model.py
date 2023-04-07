@@ -195,9 +195,9 @@ class Session(object):
     @staticmethod
     def save_session(query, answer, user_id, used_tokens=0):
         max_tokens = model_conf(const.OPEN_AI).get('conversation_max_tokens')
-        if not max_tokens or max_tokens > 4096:
+        if not max_tokens or max_tokens > 4000:
             # default value
-            max_tokens = 1000
+            max_tokens = 4000
         session = user_session.get(user_id)
         if session:
             # append conversation

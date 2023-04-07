@@ -393,7 +393,6 @@
   },
   "channel": {
     "type": "wechat",
-    "status_storage_dir": "itchat.pkl",
     "single_chat_prefix": [
       "GPT",
       "@GPT"
