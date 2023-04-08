@@ -9,7 +9,7 @@ import sys
 config = {}
 
 
-def load_config():
+def load_config(config_path = "./config.json"):
     global config
     args = sys.argv
     if len(args) > 1:
@@ -60,3 +60,9 @@ def channel_conf_val(channel_type, key, default=None):
         # common default config
         return config.get('channel').get(key, default)
     return val
+
+
+def common_conf_val(key, default=None):
+    if not config.get('common'):
+        return default
+    return config.get('common').get(key, default)

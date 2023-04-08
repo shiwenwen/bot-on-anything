@@ -4,6 +4,7 @@
 wechat channel
 """
 
+import time
 import itchat
 import json
 from itchat.content import *
@@ -40,10 +41,11 @@ class WechatChannel(Channel):
 
     def startup(self):
         # login by scan QRCode
-        if (channel_conf_val(const.WECHAT, 'receive_qrcode_api')):
-            itchat.auto_login(enableCmdQR=2, hotReload=True, qrCallback=self.login, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
+        hot_reload = channel_conf_val(const.WECHAT, 'hot_reload', True)
+        if channel_conf_val(const.WECHAT, 'receive_qrcode_api'):
+            itchat.auto_login(enableCmdQR=2, hot_reload=hot_reload, qrCallback=self.login, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
         else:
-            itchat.auto_login(enableCmdQR=2, hotReload=True, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
+            itchat.auto_login(enableCmdQR=2, hotReload=hot_reload, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
 
         # start message listener
         itchat.run()
@@ -59,7 +61,13 @@ class WechatChannel(Channel):
         from_user_id = msg['FromUserName']
         to_user_id = msg['ToUserName']              # 接收人id
         other_user_id = msg['User']['UserName']     # 对手方id
+        create_time = msg['CreateTime']             # 消息时间
         content = msg['Text']
+
+        hot_reload = channel_conf_val(const.WECHAT, 'hot_reload', True)
+        if hot_reload == True and int(create_time) < int(time.time()) - 60:  # 跳过1分钟前的历史消息
+            logger.debug("[WX]history message skipped")
+            return
 
         # 调用敏感词检测函数
         if sw.process_text(content):
@@ -98,6 +106,13 @@ class WechatChannel(Channel):
         logger.debug("[WX]receive group msg: " + json.dumps(msg, ensure_ascii=False))
         group_name = msg['User'].get('NickName', None)
         group_id = msg['User'].get('UserName', None)
+        create_time = msg['CreateTime']             # 消息时间
+
+        hot_reload = channel_conf_val(const.WECHAT, 'hot_reload', True)
+        if hot_reload == True and int(create_time) < int(time.time()) - 60:  # 跳过1分钟前的历史消息
+            logger.debug("[WX]history message skipped")
+            return
+
         if not group_name:
             return None
         origin_content = msg['Content']
@@ -153,20 +168,23 @@ class WechatChannel(Channel):
                 return
             context = dict()
             context['type'] = 'IMAGE_CREATE'
-            img_url = super().build_reply_content(query, context)
-            if not img_url:
+            img_urls = super().build_reply_content(query, context)
+            if not img_urls:
                 return
-
+            if not isinstance(img_urls, list):
+                self.send(channel_conf_val(const.WECHAT, "single_chat_reply_prefix") + img_urls, reply_user_id)
+                return
+            for url in img_urls:
             # 图片下载
-            pic_res = requests.get(img_url, stream=True)
-            image_storage = io.BytesIO()
-            for block in pic_res.iter_content(1024):
-                image_storage.write(block)
-            image_storage.seek(0)
+                pic_res = requests.get(url, stream=True)
+                image_storage = io.BytesIO()
+                for block in pic_res.iter_content(1024):
+                    image_storage.write(block)
+                image_storage.seek(0)
 
-            # 图片发送
-            logger.info('[WX] sendImage, receiver={}'.format(reply_user_id))
-            itchat.send_image(image_storage, reply_user_id)
+                # 图片发送
+                logger.info('[WX] sendImage, receiver={}'.format(reply_user_id))
+                itchat.send_image(image_storage, reply_user_id)
         except Exception as e:
             logger.exception(e)
 
