@@ -23,3 +23,5 @@ BARD = "bard"
 #google
 GOOGLE = "google"
 
+# search
+SEARCH = 'search'

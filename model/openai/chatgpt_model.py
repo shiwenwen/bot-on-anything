@@ -34,12 +34,12 @@ class ChatGPTModel(Model):
             if query in clear_memory_commands:
                 Session.clear_session(from_user_id)
                 return '记忆已清除'
-            keyword = re.search(r'^#(.+?)#', query)
+            search_prefix = model_conf(const.SEARCH).get("prefix", '#')
             additional = None
-            if keyword:
-                additional = self.get_text_from_web_search(keyword.group(1))
-                log.info('[WEB SEARCH] additional={}'.format(additional))
+            if query.startswith(search_prefix):
                 query = query.replace('#', '')
+                additional = self.get_text_from_web_search(query)
+                log.info('[WEB SEARCH] additional={}'.format(additional))
             new_query = Session.build_session_query(query, from_user_id, additional)
             log.debug("[CHATGPT] session query={}".format(new_query))
 
@@ -173,7 +173,7 @@ class ChatGPTModel(Model):
 
     def get_text_from_web_search(self, query):
         log.info('[WEB SEARCH] query={}'.format(query))
-        results = ddg(query, region='wt-wt', safesearch='Off', max_results=model_conf(const.GOOGLE).get("results_num", 5))
+        results = ddg(query, region='wt-wt', safesearch='Off', max_results=model_conf(const.SEARCH).get("results_num", 5))
         # log.info('[WEB SEARCH] results=%s' % results)
         index = 1
         temp = []
