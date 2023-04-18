@@ -6,6 +6,10 @@ from common import const
 from common import log
 import openai
 import time
+import datetime
+from duckduckgo_search import ddg
+import re
+
 
 user_session = dict()
 
@@ -30,8 +34,13 @@ class ChatGPTModel(Model):
             if query in clear_memory_commands:
                 Session.clear_session(from_user_id)
                 return '记忆已清除'
-
-            new_query = Session.build_session_query(query, from_user_id)
+            keyword = re.search(r'^#(.+?)#', query)
+            additional = None
+            if keyword:
+                additional = self.get_text_from_web_search(keyword.group(1))
+                log.info('[WEB SEARCH] additional={}'.format(additional))
+                query = query.replace('#', '')
+            new_query = Session.build_session_query(query, from_user_id, additional)
             log.debug("[CHATGPT] session query={}".format(new_query))
 
             # if context.get('stream'):
@@ -162,9 +171,25 @@ class ChatGPTModel(Model):
             return None
 
 
+    def get_text_from_web_search(self, query):
+        log.info('[WEB SEARCH] query={}'.format(query))
+        results = ddg(query, region='wt-wt', safesearch='Off', max_results=model_conf(const.GOOGLE).get("results_num", 5))
+        # log.info('[WEB SEARCH] results=%s' % results)
+        index = 1
+        temp = []
+        for result in results:
+            log.warn(result)
+            temp.append('[%s]“%s”\n URL:%s' % (index, result.get('body'), result.get('href')))
+            index += 1
+        if not temp:
+            return None
+        instructions = 'Instructions: Using the provided web search results, write a comprehensive reply to the given query. Make sure to cite results using [[number](URL)] notation after the reference. If the provided search results refer to multiple subjects with the same name, write separate answers for each subject.'
+        return 'Web search results:\n%s current data:%s\n %s' % ('\n'.join(temp), datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), instructions)
+
+
 class Session(object):
     @staticmethod
-    def build_session_query(query, user_id):
+    def build_session_query(query, user_id, additional=None):
         '''
         build query with conversation history
         e.g.  [
@@ -175,6 +200,7 @@ class Session(object):
         ]
         :param query: query content
         :param user_id: from user id
+        :param additional: additional info
         :return: query content with conversaction
         '''
         session = user_session.get(user_id, [])
@@ -183,6 +209,9 @@ class Session(object):
             system_item = {'role': 'system', 'content': system_prompt}
             session.append(system_item)
             user_session[user_id] = session
+        if additional:
+            additional_item = {'role': 'user', 'content': additional}
+            session.append(additional_item)
         user_item = {'role': 'user', 'content': query}
         session.append(user_item)
         return session

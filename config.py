@@ -12,9 +12,7 @@ config = {}
 def load_config(config_path = "./config.json"):
     global config
     args = sys.argv
-    if len(args) > 1:
-        config_path = args[1]
-    else:
+    if not config_path:
         config_path = "config.json"
     print("读取配置 %s" % config_path)
     if not os.path.exists(config_path):

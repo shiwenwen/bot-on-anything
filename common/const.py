@@ -19,3 +19,7 @@ CHATGPT = "chatgpt"
 BAIDU = "baidu"
 BING = "bing"
 BARD = "bard"
+
+#google
+GOOGLE = "google"
+
