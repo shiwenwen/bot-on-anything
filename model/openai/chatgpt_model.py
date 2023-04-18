@@ -8,7 +8,6 @@ import openai
 import time
 import datetime
 from duckduckgo_search import ddg
-import re
 
 
 user_session = dict()
@@ -183,8 +182,9 @@ class ChatGPTModel(Model):
             index += 1
         if not temp:
             return None
+        tz = datetime.timezone(datetime.timedelta(hours=8))
         instructions = 'Instructions: Using the provided web search results, write a comprehensive reply to the given query. Make sure to cite results using [[number](URL)] notation after the reference. If the provided search results refer to multiple subjects with the same name, write separate answers for each subject.'
-        return 'Web search results:\n%s current data:%s\n %s' % ('\n'.join(temp), datetime.datetime.now().strftime("%Y/%m/%d %H:%M"), instructions)
+        return 'Web search results:\n%s current data:%s\n %s' % ('\n'.join(temp), datetime.datetime.now(tz).strftime("%Y/%m/%d %H:%M"), instructions)
 
 
 class Session(object):
