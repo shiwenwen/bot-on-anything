@@ -172,7 +172,7 @@ class ChatGPTModel(Model):
 
     def get_text_from_web_search(self, query):
         log.info('[WEB SEARCH] query={}'.format(query))
-        results = ddg(query, region='wt-wt', safesearch='Off', max_results=model_conf(const.SEARCH).get("results_num", 5))
+        results = ddg(query, region='wt-wt', safesearch='Off', max_results=model_conf(const.SEARCH).get("results_num", 5), time='d')
         # log.info('[WEB SEARCH] results=%s' % results)
         index = 1
         temp = []
