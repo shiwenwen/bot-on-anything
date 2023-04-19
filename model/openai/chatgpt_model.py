@@ -90,6 +90,11 @@ class ChatGPTModel(Model):
             log.warn(e)
             log.warn("[CHATGPT] Timeout")
             return "我没有收到消息，请稍后重试"
+        except openai.error.InvalidRequestError as e:
+            # unknown exception
+            log.exception(e)
+            Session.clear_session(user_id)
+            return "会话长度受限，我已清除记忆，请开始新的对话"
         except Exception as e:
             # unknown exception
             log.exception(e)
