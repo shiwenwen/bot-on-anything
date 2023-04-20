@@ -24,4 +24,4 @@ BARD = "bard"
 GOOGLE = "google"
 
 # search
-SEARCH = 'search'
+DUCK_DUCK_GO = 'duckduckgo'
