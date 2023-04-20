@@ -70,8 +70,9 @@ class ChatGPTModel(Model):
             log.info("[CHATGPT] reply={}", reply_content)
             if reply_content:
                 # save conversation
-                Session.save_session(query, reply_content, user_id, used_token)
-            return response.choices[0]['message']['content']
+                has_delete = Session.save_session(query, reply_content, user_id, used_token)
+                tips = '\n\n【提示：由于对话长度限制，我丢弃了本次对话最早的一些记忆来保障对话的继续进行。如果我的回答依然不够完整，你可以对我说：“继续”】' if has_delete else ''
+            return response.choices[0]['message']['content'] + tips
         except openai.error.RateLimitError as e:
             # rate limit exception
             log.warn(e)
@@ -89,11 +90,16 @@ class ChatGPTModel(Model):
             log.warn(e)
             log.warn("[CHATGPT] Timeout")
             return "我没有收到消息，请稍后重试"
+        except openai.error.InvalidRequestError as e:
+            # unknown exception
+            log.exception(e)
+            Session.clear_session(user_id)
+            return "会话长度受限，我已清除记忆，请开始新的对话"
         except Exception as e:
             # unknown exception
             log.exception(e)
             Session.clear_session(user_id)
-            return "请再问我一次吧"
+            return "对话异常，我已清除记忆，请开始新的对话"
 
 
     async def reply_text_stream(self, query,  context, retry_count=0):
@@ -121,7 +127,7 @@ class ChatGPTModel(Model):
                 yield False,full_response
             Session.save_session(query, full_response, user_id)
             log.info("[chatgpt]: reply={}", full_response)
-            yield True,full_response
+            yield True, full_response
 
         except openai.error.RateLimitError as e:
             # rate limit exception
@@ -218,6 +224,7 @@ class Session(object):
 
     @staticmethod
     def save_session(query, answer, user_id, used_tokens=0):
+        has_delete = False
         max_tokens = model_conf(const.OPEN_AI).get('conversation_max_tokens')
         max_history_num = model_conf(const.OPEN_AI).get('max_history_num', None)
         if not max_tokens or max_tokens > 4000:
@@ -233,11 +240,13 @@ class Session(object):
             # pop first conversation (TODO: more accurate calculation)
             session.pop(1)
             session.pop(1)
-
+            has_delete = True
         if max_history_num is not None:
             while len(session) > max_history_num * 2 + 1:
                 session.pop(1)
                 session.pop(1)
+                has_delete = True
+        return has_delete
 
     @staticmethod
     def clear_session(user_id):
