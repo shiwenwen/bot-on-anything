@@ -33,7 +33,7 @@ class ChatGPTModel(Model):
             if query in clear_memory_commands:
                 Session.clear_session(from_user_id)
                 return '记忆已清除'
-            search_prefix = model_conf(const.SEARCH).get("prefix", '#')
+            search_prefix = model_conf(const.DUCK_DUCK_GO).get("prefix", '#')
             additional = None
             if query.startswith(search_prefix):
                 query = query.replace('#', '')
