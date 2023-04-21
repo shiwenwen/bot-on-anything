@@ -71,7 +71,7 @@ class ChatGPTModel(Model):
             if reply_content:
                 # save conversation
                 has_delete = Session.save_session(query, reply_content, user_id, used_token)
-                tips = '\n\n【提示：由于对话长度限制，我丢弃了本次对话最早的一些记忆来保障对话的继续进行。如果我的回答依然不够完整，你可以对我说：“继续”】' if has_delete else ''
+                tips = '\n\n【提示：由于对话长度限制，我丢弃了本次对话最早的一些记忆来保障对话的继续进行。如果我的回答依然不够完整，你可以对我说：“继续”让我接着回答，或者”#清除记忆“来开始新的对话】' if has_delete else ''
             return response.choices[0]['message']['content'] + tips
         except openai.error.RateLimitError as e:
             # rate limit exception
