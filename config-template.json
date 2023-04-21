@@ -42,7 +42,18 @@
     "single_chat_reply_prefix": "[bot] ",
     "group_chat_prefix": ["@bot"],
     "group_name_white_list": ["ChatGPT测试群"],
-    "image_create_prefix": ["画", "看", "找一张"],
+    "image_create_prefix": [
+      "画",
+      "画：",
+      "画:",
+      "看",
+      "找一张",
+      "绘制",
+      "图片：",
+      "图片:",
+      "Image：",
+      "Image:"
+    ],
 
     "terminal": {
     },
