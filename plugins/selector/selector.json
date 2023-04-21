@@ -10,7 +10,7 @@
       },
       {
         "model":"bard",
-        "prefix":["#google"]
+        "prefix":["#bard"]
       }
     ] 
 }

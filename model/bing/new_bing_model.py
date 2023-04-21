@@ -1,12 +1,13 @@
 # encoding:utf-8
 import asyncio
 from model.model import Model
-from config import model_conf_val, common_conf_val
-from common import log
+from config import model_conf_val, common_conf_val, model_conf
+from common import log, const
 from EdgeGPT import Chatbot, ConversationStyle
 from ImageGen import ImageGen
 from common import functions
 from model.bing.jailbroken_sydney import SydneyBot
+import openai
 
 user_session = dict()
 suggestion_session = dict()
@@ -104,7 +105,19 @@ class BingModel(Model):
             return self.build_source_attributions(answer, context)
         elif context.get('type', None) == 'IMAGE_CREATE':
             if functions.contain_chinese(query):
-                return "ImageGen目前仅支持使用英文关键词生成图片"
+                log.info('翻译prompt为英文');
+                try:
+                    openai.api_key = model_conf(const.OPEN_AI).get('api_key')
+                    res = openai.ChatCompletion.create(
+                        model="gpt-3.5-turbo",  # 对话模型的名称
+                        messages=[
+                            {"role": "user", "content": "翻译成英文：{}".format(query)}
+                        ]
+                    )
+                    query = res.choices[0]['message']['content']
+                except Exception as e:
+                    log.warn(e)
+                    return "ImageGen目前仅支持使用英文关键词生成图片"
             return self.create_img(query)
 
     def create_img(self, query):
