@@ -16,7 +16,7 @@ def _get_logger():
                                                   datefmt='%Y-%m-%d %H:%M:%S'))
     log.addHandler(console_handle)
     # 增加日志文件，每天一个日志文件，保留30天，超过30天的日志文件会被删除，以日期为后缀，如：log.2018-08-08，存储在logs目录下
-    file_handle = TimedRotatingFileHandler(filename='logs/log', when='D', interval=1, backupCount=30)
+    file_handle = TimedRotatingFileHandler(filename='logs/log', when='S', interval=1, backupCount=30)
     file_handle.setFormatter(logging.Formatter('[%(levelname)s][%(asctime)s][filename)s:%(lineno)d] - %(message)s',
                                                datefmt='%Y-%m-%d %H:%M:%S'))
     log.addHandler(file_handle)
