@@ -9,10 +9,13 @@ echo $BASE_DIR
 if [ ! -f "${BASE_DIR}/logs/log_info.log" ]; then
   mkdir "${BASE_DIR}/logs"
   touch "${BASE_DIR}/logs/log_info.log"
-echo "${BASE_DIR}/logs/log_info.log"  
+echo "${BASE_DIR}/logs/log_info.log"
 fi
 
-nohup python3 "${BASE_DIR}/app.py" >> ${BASE_DIR}/logs/log_info.log  & tail -f "${BASE_DIR}/logs/log_info.log"
+source ${BASE_DIR}/venv/bin/activate
+
+nohup python3 "${BASE_DIR}/app.py" >> /dev/null 2>&1 &
+
 
 echo "bot-on-anaything is starting，you can check the ${BASE_DIR}/logs/log_info.log"
 

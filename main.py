@@ -5,6 +5,7 @@ from datetime import timedelta
 from app import main
 from common import log
 import json
+import argparse
 
 
 http_app = Flask(__name__, static_url_path='')
@@ -16,15 +17,18 @@ http_app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(seconds=1)
 
 
 # 微信二维码链接
-wechat_qrcode_link = None
+qrcode_link = None
 
 
 @http_app.route('/', methods=['GET'])
 def index():
+    log.info('加载模板文件')
     return render_template('index.html')
 
 
 bot_process: multiprocessing.Process = None
+
+
 @http_app.route('/restart', methods=['GET'])
 def save():
     global bot_process
@@ -43,7 +47,7 @@ def save():
 @http_app.route('/config', methods=['POST'])
 def sava_config():
     json_data = request.get_json()
-    # 读取本地的confifig.json文件
+    # 读取本地的config.json文件
     with open('config.json', 'r') as f:
         config = json.load(f)
         # 修改配置
@@ -57,12 +61,11 @@ def sava_config():
         })
 
 
-
 @http_app.route('/receive_qrcode', methods=['POST'])
 def receive_qrcode():
     json_data = request.get_json()
-    global wechat_qrcode_link
-    wechat_qrcode_link = json_data.get('qrcode_link')
+    global qrcode_link
+    qrcode_link = json_data.get('qrcode_link')
     return jsonify({
         'code': 0,
         'msg': 'success'
@@ -71,12 +74,12 @@ def receive_qrcode():
 
 @http_app.route('/query_qrcode', methods=['GET'])
 def query_qrcode():
-    global wechat_qrcode_link
+    global qrcode_link
     return jsonify({
         'code': 0,
         'msg': 'success',
         'data': {
-            'qrcode_link': wechat_qrcode_link
+            'qrcode_link': qrcode_link
         }
     })
 
@@ -90,6 +93,12 @@ def _merge_dict(a, b):
     return a
 
 
-
 if __name__ == '__main__':
-    http_app.run(debug=True, host='0.0.0.0', port=5000)
+    # 获取启动参数
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", type=bool, default=True, help="debug模式")
+    parser.add_argument("--host", type=str, default='0.0.0.0', help="host")
+    parser.add_argument("--port", type=int, default=5000, help="port")
+    args = parser.parse_args()
+    http_app.run(debug=args.debug, host=args.host, port=args.port)
+
