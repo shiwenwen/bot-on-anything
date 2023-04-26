@@ -22,7 +22,6 @@ qrcode_link = None
 
 @http_app.route('/', methods=['GET'])
 def index():
-    log.info('加载模板文件')
     return render_template('index.html')
 
 
@@ -30,18 +29,18 @@ bot_process: multiprocessing.Process = None
 
 
 @http_app.route('/restart', methods=['GET'])
-def save():
+def restart():
     global bot_process
     if bot_process and bot_process.is_alive():
         bot_process.terminate()
-        # 创建子进程对象
-        bot_process = multiprocessing.Process(target=main)
-        # 启动进程
-        bot_process.start()
-        return jsonify({
-            'code': 0,
-            'msg': 'restart success'
-        })
+    # 创建子进程对象
+    bot_process = multiprocessing.Process(target=main)
+    # 启动进程
+    bot_process.start()
+    return jsonify({
+        'code': 0,
+        'msg': 'restart success'
+    })
 
 
 @http_app.route('/config', methods=['POST'])
@@ -66,6 +65,7 @@ def receive_qrcode():
     json_data = request.get_json()
     global qrcode_link
     qrcode_link = json_data.get('qrcode_link')
+    log.info('收到二维码 %s' % qrcode_link)
     return jsonify({
         'code': 0,
         'msg': 'success'

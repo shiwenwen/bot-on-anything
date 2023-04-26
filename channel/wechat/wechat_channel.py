@@ -43,7 +43,7 @@ class WechatChannel(Channel):
         # login by scan QRCode
         hot_reload = channel_conf_val(const.WECHAT, 'hot_reload', True)
         if channel_conf_val(const.WECHAT, 'receive_qrcode_api'):
-            itchat.auto_login(enableCmdQR=2, hot_reload=hot_reload, qrCallback=self.login, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
+            itchat.auto_login(enableCmdQR=2, hotReload=hot_reload, qrCallback=self.login, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
         else:
             itchat.auto_login(enableCmdQR=2, hotReload=hot_reload, statusStorageDir=channel_conf_val(const.WECHAT, 'status_storage_dir'))
 
@@ -57,10 +57,10 @@ class WechatChannel(Channel):
         print('qrcode_link:', 'https://login.weixin.qq.com/l/'+uuid)
         # 发送二维码到外部接口
         if channel_conf_val(const.WECHAT, 'receive_qrcode_api'):
-            requests.post(channel_conf_val(const.WECHAT, 'receive_qrcode_api'), data={'uuid': uuid, 'qrcode': qrcode, 'qrcode_link': 'https://login.weixin.qq.com/l/' + uuid})
+            # requests 发送json数据到外部接口 receive_qrcode_api
+            requests.post(channel_conf_val(const.WECHAT, 'receive_qrcode_api'),
+                          json={'uuid': uuid, 'qrcode_link': 'https://login.weixin.qq.com/l/' + uuid})
             
-
-
 
     def handle(self, msg):
         logger.debug("[WX]receive msg: " + json.dumps(msg, ensure_ascii=False))
