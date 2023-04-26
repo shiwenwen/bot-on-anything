@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import GPTConfigView from './views/GPTConfigView.vue'
+import BotConfigView from './views/BotConfigView.vue'
 
 </script>
 
 <template>
-  <GPTConfigView />
+  <BotConfigView />
 </template>
 
 <style scoped>

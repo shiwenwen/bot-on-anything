@@ -55,6 +55,12 @@ class WechatChannel(Channel):
         print('status:', status)
         # 请将链接转发到外部接口，并在外部自行通过二维码生成库将链接转换为二维码后展示，例如：将下方的 qrcode_link 通过草料二维码进行处理后，再通过手机端扫码登录微信小号
         print('qrcode_link:', 'https://login.weixin.qq.com/l/'+uuid)
+        # 发送二维码到外部接口
+        if channel_conf_val(const.WECHAT, 'receive_qrcode_api'):
+            requests.post(channel_conf_val(const.WECHAT, 'receive_qrcode_api'), data={'uuid': uuid, 'qrcode': qrcode, 'qrcode_link': 'https://login.weixin.qq.com/l/' + uuid})
+            
+
+
 
     def handle(self, msg):
         logger.debug("[WX]receive msg: " + json.dumps(msg, ensure_ascii=False))
