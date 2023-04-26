@@ -8,6 +8,8 @@ from multiprocessing import Pool
 
 from plugins.plugin_manager import PluginManager
 
+args = None
+
 
 # 启动通道
 def start_process(channel_type, config_path):
@@ -26,7 +28,8 @@ def start_process(channel_type, config_path):
 def main():
     try:
         # load config
-        config.load_config(args.config)
+        configs = args.config if args else None
+        config.load_config(configs)
 
         model_type = config.conf().get("model").get("type")
         channel_type = config.conf().get("channel").get("type")
@@ -34,12 +37,12 @@ def main():
         PluginManager()
         # 1.单个字符串格式配置时，直接启动
         if not isinstance(channel_type, list):
-            start_process(channel_type, args.config)
+            start_process(channel_type, configs)
             exit(0)
 
         # 2.单通道列表配置时，直接启动
         if len(channel_type) == 1:
-            start_process(channel_type[0], args.config)
+            start_process(channel_type[0], configs)
             exit(0)
 
         # 3.多通道配置时，进程池启动
@@ -54,10 +57,10 @@ def main():
         pool = Pool(len(channel_type))
         for type_item in channel_type:
             log.info("[INIT] Start up: {} on {}", model_type, type_item)
-            pool.apply_async(start_process, args=[type_item, args.config])
+            pool.apply_async(start_process, args=[type_item, configs])
 
         if terminal:
-            start_process(terminal, args.config)
+            start_process(terminal, configs)
 
         # 等待池中所有进程执行完毕
         pool.close()
@@ -65,6 +68,7 @@ def main():
     except Exception as e:
         log.error("App startup failed!")
         log.exception(e)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
