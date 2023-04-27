@@ -230,7 +230,22 @@
     </el-card>
     <el-form-item class="button-item">
       <div class="button-item">
-        <el-button type="primary" size="large" @click="onSubmit">保存</el-button>
+        <el-popover placement="right" :width="400" trigger="click">
+          <template #reference>
+            <el-button type="" size="large" @click="getQrCode">查看二维码</el-button>
+          </template>
+          <el-card class="box-card">
+            <template #header>
+              <div class="card-header">
+                <span>二维码</span>
+              </div>
+            </template>
+            <qrcode-vue :value="qrcode_link" :size="340" level="H" />
+          </el-card>
+        </el-popover>
+
+        <el-button type="primary" size="large" @click="getConfig">刷新配置</el-button>
+        <el-button type="success" size="large" @click="onSubmit">保存</el-button>
         <el-button type="warning" size="large" @click="onRestart">重新启动</el-button>
       </div>
     </el-form-item>
@@ -240,9 +255,14 @@
 <script lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
+import QrcodeVue from 'qrcode.vue'
 export default {
+  components: {
+    QrcodeVue
+  },
   data() {
     return {
+      qrcode_link: '',
       config: {
         channel: {
           type: 'wechat',
@@ -278,7 +298,45 @@ export default {
       }
     }
   },
+  mounted() {
+    this.getConfig()
+    setInterval(() => {
+      this.getQrCode(false)
+    }, 1000 * 3)
+  },
   methods: {
+    getConfig() {
+      axios.get('/api/config').then((res) => {
+        if (res.data.code === 0) {
+          const config = res.data.data
+          if (config.channel.wechat.single_chat_prefix) {
+            config.channel.wechat.single_chat_prefix =
+              config.channel.wechat.single_chat_prefix.join(',')
+          }
+          if (config.channel.wechat.group_name_white_list) {
+            config.channel.wechat.group_name_white_list =
+              config.channel.wechat.group_name_white_list.join(',')
+          }
+          if (config.model.bing.cookies.length > 0) {
+            config.model.bing.cookies = JSON.stringify(config.model.bing.cookies[0], null, 2)
+          }
+          this.config = config
+          ElMessage.success(res.data.msg)
+        } else {
+          ElMessage.error(res.data.msg || '配置获取失败')
+        }
+      })
+    },
+    getQrCode(showMessage=true) {
+      axios.get('/api/query_qrcode').then((res) => {
+        if (res.data.code === 0) {
+          this.qrcode_link = res.data.data.qrcode_link
+          showMessage && ElMessage.success(res.data.msg)
+        } else {
+          showMessage && ElMessage.error(res.data.msg || '配置获取失败')
+        }
+      })
+    },
     onSubmit() {
       const config = JSON.parse(JSON.stringify(this.config))
       if (this.config.channel.wechat.single_chat_prefix) {
@@ -301,7 +359,7 @@ export default {
         for (let i = 0; i < cookies.length; i++) {
           const cookie = cookies[i]
           if (cookie.name === '_U') {
-            config.model.bing.cookies = cookie
+            config.model.bing.cookies = [cookie]
             break
           }
         }
@@ -310,10 +368,11 @@ export default {
       console.log('保存配置', config)
       axios
         .post('/api/save_config', config)
-        .then( (response: any) => {
+        .then((response: any) => {
           console.log(response)
           if (response.data.code === 0) {
             ElMessage.success('保存成功')
+            this.getConfig()
             ElMessageBox.confirm('保存成功，是否重启服务？', '提示', {
               confirmButtonText: '确定',
               cancelButtonText: '取消，稍后重启',
@@ -337,7 +396,7 @@ export default {
       axios.get('/api/restart').then((response: any) => {
         console.log(response)
         if (response.data.code === 0) {
-          ElMessage.success('重启成功')
+          ElMessage.success('重启成功，稍后重新扫码登录')
         } else {
           ElMessage.error(response.msg || '重启失败')
         }

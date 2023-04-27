@@ -60,6 +60,18 @@ def sava_config():
         })
 
 
+@http_app.route('/api/config', methods=['GET'])
+def get_config():
+    # 读取本地的config.json文件
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+        return jsonify({
+            'code': 0,
+            'msg': 'success',
+            'data': config
+        })
+
+
 @http_app.route('/api/receive_qrcode', methods=['POST'])
 def receive_qrcode():
     json_data = request.get_json()
