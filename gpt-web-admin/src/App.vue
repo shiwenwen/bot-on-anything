@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import BotConfigView from './views/BotConfigView.vue'
-
 </script>
 
 <template>
@@ -8,5 +7,4 @@ import BotConfigView from './views/BotConfigView.vue'
 </template>
 
 <style scoped>
-
 </style>
