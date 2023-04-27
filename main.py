@@ -28,7 +28,7 @@ def index():
 bot_process: multiprocessing.Process = None
 
 
-@http_app.route('/restart', methods=['GET'])
+@http_app.route('/api/restart', methods=['GET'])
 def restart():
     global bot_process
     if bot_process and bot_process.is_alive():
@@ -43,7 +43,7 @@ def restart():
     })
 
 
-@http_app.route('/config', methods=['POST'])
+@http_app.route('/api/save_config', methods=['POST'])
 def sava_config():
     json_data = request.get_json()
     # 读取本地的config.json文件
@@ -53,14 +53,14 @@ def sava_config():
         new_config = _merge_dict(config, json_data)
         # 写入本地的config.json文件
         with open('config.json', 'w') as f:
-            json.dump(json_data, f)
+            json.dump(new_config, f, indent=3, ensure_ascii=False)
         return jsonify({
             'code': 0,
             'msg': 'save success'
         })
 
 
-@http_app.route('/receive_qrcode', methods=['POST'])
+@http_app.route('/api/receive_qrcode', methods=['POST'])
 def receive_qrcode():
     json_data = request.get_json()
     global qrcode_link
@@ -72,7 +72,7 @@ def receive_qrcode():
     })
 
 
-@http_app.route('/query_qrcode', methods=['GET'])
+@http_app.route('/api/query_qrcode', methods=['GET'])
 def query_qrcode():
     global qrcode_link
     return jsonify({
