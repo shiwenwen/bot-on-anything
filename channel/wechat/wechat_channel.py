@@ -58,8 +58,10 @@ class WechatChannel(Channel):
         # 发送二维码到外部接口
         if channel_conf_val(const.WECHAT, 'receive_qrcode_api'):
             # requests 发送json数据到外部接口 receive_qrcode_api
-            requests.post(channel_conf_val(const.WECHAT, 'receive_qrcode_api'),
-                          json={'uuid': uuid, 'qrcode_link': 'https://login.weixin.qq.com/l/' + uuid})
+            try:
+                requests.post(channel_conf_val(const.WECHAT, 'receive_qrcode_api'), json={'uuid': uuid, 'qrcode_link': 'https://login.weixin.qq.com/l/' + uuid})
+            except Exception as e:
+                logger.info('%s' % e)
             
 
     def handle(self, msg):

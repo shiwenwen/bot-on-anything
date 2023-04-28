@@ -36,6 +36,8 @@ def restart():
         bot_process.terminate()
     # 创建子进程对象
     bot_process = multiprocessing.Process(target=main)
+    json_data = request.get_json()
+    re_login = json_data.get('re_login', False)
     if re_login:
         # 删除itchat的缓存文件
         os.remove('itchat.pkl')
