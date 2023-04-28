@@ -386,7 +386,6 @@ export default {
               break
             }
           }
-          return
         } else {
           config.model.bing.cookies = [cookies]
         }
