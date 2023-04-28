@@ -12,7 +12,7 @@ if [ ! -f "${BASE_DIR}/logs/log_info.log" ]; then
 echo "${BASE_DIR}/logs/log_info.log"
 fi
 
-source ${BASE_DIR}/venv/bin/activate
+# source ${BASE_DIR}/venv/bin/activate
 
 nohup python3 "${BASE_DIR}/app.py" >> /dev/null 2>&1 &
 
