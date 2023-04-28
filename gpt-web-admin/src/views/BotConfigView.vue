@@ -232,7 +232,7 @@
       <div class="button-item">
         <el-popover placement="right" :width="400" trigger="click">
           <template #reference>
-            <el-button type="" size="large" @click="getQrCode">扫码登录</el-button>
+            <el-button type="" size="large" @click="getQrCode(true)">扫码登录</el-button>
           </template>
           <el-card class="box-card">
             <template #header>
@@ -248,7 +248,7 @@
         <el-button type="success" size="large" @click="onSubmit">保存</el-button>
         <el-popconfirm title="提示：是否要重启并重新登录？(若登录没有失效，通常仅需要重启)" confirm-button-text="重启并重新登录" cancel-button-text="仅重启" @confirm="onRestart(true)" @cancel="onRestart(false)">
           <template #reference>
-            <el-button type="warning" size="large"">重新启动</el-button>
+            <el-button type="warning" size="large">重新启动</el-button>
           </template>
         </el-popconfirm>
       </div>
