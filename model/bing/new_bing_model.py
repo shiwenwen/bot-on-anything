@@ -24,6 +24,7 @@ class BingModel(Model):
         try:
             self.cookies = model_conf_val("bing", "cookies")
             self.jailbreak = model_conf_val("bing", "jailbreak")
+            BingModel.style = model_conf_val("bing", "style")
             self.bot = SydneyBot(cookies=self.cookies, options={}) if (
                 self.jailbreak) else Chatbot(cookies=self.cookies)
         except Exception as e:
