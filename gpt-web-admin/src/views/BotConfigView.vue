@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="form" :model="config" label-width="140px" label-position="left">
+  <el-form ref="formRef" :model="config" label-width="140px" label-position="left" :rules="rules" inline-message status-icon>
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -47,6 +47,13 @@
               群聊白名单，只有在白名单内的群里支持使用AI助手，多个群名用英文“,”号分割，如开放所有群，请输入ALL_GROUP
             </p>
           </el-alert>
+        </el-form-item>
+        <el-form-item label="高级：群聊独立性格" prop="group_character_desc">
+          <el-input
+            v-model="config.channel.wechat.group_character_desc"
+            :autosize="{ minRows: 4, maxRows: 20 }"
+            type="textarea"
+          />
         </el-form-item>
       </el-card>
     </el-card>
@@ -111,7 +118,8 @@
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              温度即是随机因子，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0.7，最大不可以超过1。如果希望结果更有创意可以尝试 0.9，或者希望有固定结果可以尝试 0.0。
+              温度即是随机因子，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0.7，最大不可以超过1。如果希望结果更有创意可以尝试
+              0.9，或者希望有固定结果可以尝试 0.0。
             </p>
           </el-alert>
         </el-form-item>
@@ -124,7 +132,8 @@
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              -2.0 ~ 2.0 之间的数字，正值会根据新 tokens 在文本中的现有频率对其进行惩罚，从而降低模型逐字重复同一行的可能性。
+              -2.0 ~ 2.0 之间的数字，正值会根据新 tokens
+              在文本中的现有频率对其进行惩罚，从而降低模型逐字重复同一行的可能性。
             </p>
           </el-alert>
         </el-form-item>
@@ -137,7 +146,8 @@
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新 tokens，从而增加模型谈论新主题的可能性。
+              -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新
+              tokens，从而增加模型谈论新主题的可能性。
             </p>
           </el-alert>
         </el-form-item>
@@ -145,7 +155,7 @@
           <el-input
             v-model="config.model.openai.character_desc"
             placeholder="角色设定"
-            :autosize="{ minRows: 2, maxRows: 10 }"
+            :autosize="{ minRows: 4, maxRows: 10 }"
             type="textarea"
           />
           <el-alert type="success" :closable="false">
@@ -197,7 +207,7 @@
             <el-option label="更多精确" value="precise"></el-option>
           </el-select>
         </el-form-item>
-  
+
         <el-form-item label="角色设定">
           <el-input
             v-model="config.model.bing.jailbreak_prompt"
@@ -220,10 +230,10 @@
           </el-alert>
         </el-form-item>
         <!-- cookies -->
-        <el-form-item label="Cookie认证">
+        <el-form-item label="Cookie认证" prop="bing_cookies">
           <el-input
             v-model="config.model.bing.cookies"
-            :autosize="{ minRows: 2, maxRows: 10 }"
+            :autosize="{ minRows: 4, maxRows: 20 }"
             type="textarea"
           />
           <el-alert type="warning" show-icon :closable="false">
@@ -274,15 +284,52 @@
 </template>
 
 <script lang="ts">
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import axios from 'axios'
 import QrcodeVue from 'qrcode.vue'
+
 export default {
   components: {
     QrcodeVue
   },
   data() {
     return {
+      rules: {
+        bing_cookies: [
+          {
+            validator: (rule: any, value: any, callback: any) => {
+              if (value) {
+                try {
+                  JSON.parse(value)
+                  callback()
+                } catch (error) {
+                  callback(new Error('Cookies格式错误'))
+                }
+              } else {
+                callback()
+              }
+            },
+            trigger: 'change'
+          }
+        ],
+        group_character_desc: [
+          {
+            validator: (rule: any, value: any, callback: any) => {
+              if (value) {
+                try {
+                  JSON.parse(value)
+                  callback()
+                } catch (error) {
+                  callback(new Error('群聊独立性格式错误'))
+                }
+              } else {
+                callback()
+              }
+            },
+            trigger: 'change'
+          }
+        ]
+      },
       qrcode_link: '',
       config: {
         channel: {
@@ -290,7 +337,8 @@ export default {
           wechat: {
             single_chat_prefix: 'BOT', // 多个
             single_chat_reply_prefix: '[🤖]',
-            group_name_white_list: 'ALL_GROUP' // 多个
+            group_name_white_list: 'ALL_GROUP', // 多个
+            group_character_desc: ''
           }
         },
         model: {
@@ -339,6 +387,13 @@ export default {
             config.channel.wechat.group_name_white_list =
               config.channel.wechat.group_name_white_list.join(',')
           }
+          if (config.channel.wechat.group_character_desc) {
+            config.channel.wechat.group_character_desc = JSON.stringify(
+              config.channel.wechat.group_character_desc,
+              null,
+              2
+            ) 
+          }
           if (config.model.bing.cookies.length > 0) {
             config.model.bing.cookies = JSON.stringify(config.model.bing.cookies, null, 2)
           }
@@ -370,14 +425,40 @@ export default {
       })
     },
     onSubmit() {
+      if (!this.$refs.formRef) return
+      (this.$refs.formRef as FormInstance).validate((valid: boolean) => {
+        if (valid) {
+          console.log('submit!')
+        } else {
+          console.log('error submit!')
+          return false
+        }
+      })
       const config = JSON.parse(JSON.stringify(this.config))
       if (this.config.channel.wechat.single_chat_prefix) {
         config.channel.wechat.single_chat_prefix =
           this.config.channel.wechat.single_chat_prefix.split(',')
+      } else {
+        config.channel.wechat.single_chat_prefix = []
       }
       if (this.config.channel.wechat.group_name_white_list) {
         config.channel.wechat.group_name_white_list =
           this.config.channel.wechat.group_name_white_list.split(',')
+      } else {
+        config.channel.wechat.group_name_white_list = []
+      }
+      if (this.config.channel.wechat.group_character_desc) {
+        try {
+          JSON.parse(this.config.channel.wechat.group_character_desc)
+        } catch (error) {
+          ElMessage.error('群聊高级设置格式错误')
+          return
+        }
+        config.channel.wechat.group_character_desc = JSON.parse(
+          this.config.channel.wechat.group_character_desc
+        )
+      } else {
+        config.channel.wechat.group_character_desc = []
       }
       if (this.config.model.bing.cookies) {
         try {
@@ -398,9 +479,13 @@ export default {
         } else {
           config.model.bing.cookies = [cookies]
         }
+      } else {
+        config.model.bing.cookies = []
       }
       if (this.config.model.bing.jailbreak_prompt) {
         config.model.bing.jailbreak_prompt = `[system](#additional_instructions)\n${this.config.model.bing.jailbreak_prompt}`
+      } else {
+        config.model.bing.jailbreak_prompt = ''
       }
       // axios 发送json数据
       console.log('保存配置', config)

@@ -1,7 +1,7 @@
 # encoding:utf-8
 
 from model.model import Model
-from config import model_conf, common_conf_val
+from config import model_conf, common_conf_val, channel_conf_val
 from common import const
 from common import log
 import openai
@@ -39,7 +39,13 @@ class ChatGPTModel(Model):
                 query = query.replace('#', '')
                 additional = self.get_text_from_web_search(query)
                 log.info('[WEB SEARCH] additional={}'.format(additional))
-            new_query = Session.build_session_query(query, from_user_id, additional)
+            group_name = context.get('group_name', None)
+            character_desc = None
+            if group_name:  # 群聊独立人格
+                log.info('[SSSSSSSSSSS] group_name={}'.format(group_name))
+                character_desc = channel_conf_val(const.WECHAT, 'group_character_desc', {}).get(group_name, None)
+                log.info('[SSSSSSSSSSS] group_character_desc={}'.format(character_desc))
+            new_query = Session.build_session_query(query, from_user_id, additional, character_desc=character_desc)
             log.debug("[CHATGPT] session query={}".format(new_query))
 
             # if context.get('stream'):
@@ -195,7 +201,7 @@ class ChatGPTModel(Model):
 
 class Session(object):
     @staticmethod
-    def build_session_query(query, user_id, additional=None):
+    def build_session_query(query, user_id, additional=None, character_desc=None):
         '''
         build query with conversation history
         e.g.  [
@@ -207,11 +213,12 @@ class Session(object):
         :param query: query content
         :param user_id: from user id
         :param additional: additional info
+        :param character_desc: character description
         :return: query content with conversaction
         '''
         session = user_session.get(user_id, [])
         if len(session) == 0:
-            system_prompt = model_conf(const.OPEN_AI).get("character_desc", "")
+            system_prompt = character_desc if character_desc else model_conf(const.OPEN_AI).get("character_desc", "")
             system_item = {'role': 'system', 'content': system_prompt}
             session.append(system_item)
             user_session[user_id] = session
