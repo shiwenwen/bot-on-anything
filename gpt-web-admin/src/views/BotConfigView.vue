@@ -222,7 +222,7 @@
             <p>
               由于New
               Bing通过逆向实现，所以需要Cookies进行身份认证，获取方法：Edge浏览器安装Cookie-Editor插件，登录https://www.bing.com/new
-              打开Cookie-Editor，导出Cookies位JSON数据，粘贴过来。Cookies有效期应该为14天，过期后需要重新获取
+              打开Cookie-Editor，导出Cookies位JSON数据，粘贴过来。Cookies有效期为14天，过期后需要重新获取。
             </p>
           </el-alert>
         </el-form-item>
@@ -232,7 +232,7 @@
       <div class="button-item">
         <el-popover placement="right" :width="400" trigger="click">
           <template #reference>
-            <el-button type="" size="large" @click="getQrCode">查看二维码</el-button>
+            <el-button type="" size="large" @click="getQrCode">扫码登录</el-button>
           </template>
           <el-card class="box-card">
             <template #header>
