@@ -246,7 +246,11 @@
 
         <el-button type="primary" size="large" @click="getConfig">刷新配置</el-button>
         <el-button type="success" size="large" @click="onSubmit">保存</el-button>
-        <el-button type="warning" size="large" @click="onRestart">重新启动</el-button>
+        <el-popconfirm title="提示：是否要重启并重新登录？(若登录没有失效，通常仅需要重启)" confirm-button-text="重启并重新登录" cancel-button-text="仅重启" @confirm="onRestart(true)" @cancel="onRestart(false)">
+          <template #reference>
+            <el-button type="warning" size="large"">重新启动</el-button>
+          </template>
+        </el-popconfirm>
       </div>
     </el-form-item>
   </el-form>
@@ -306,7 +310,7 @@ export default {
   },
   methods: {
     getConfig() {
-      axios.get('/api/config').then((res) => {
+      axios.get('/api/config').then((res: any) => {
         if (res.data.code === 0) {
           const config = res.data.data
           if (config.channel.wechat.single_chat_prefix) {
@@ -328,7 +332,7 @@ export default {
       })
     },
     getQrCode(showMessage=true) {
-      axios.get('/api/query_qrcode').then((res) => {
+      axios.get('/api/query_qrcode').then((res: any) => {
         if (res.data.code === 0) {
           this.qrcode_link = res.data.data.qrcode_link
           showMessage && ElMessage.success(res.data.msg)
@@ -392,11 +396,16 @@ export default {
           ElMessage.error('保存失败' + error)
         })
     },
-    onRestart() {
-      axios.get('/api/restart').then((response: any) => {
+    onRestart(re_login: boolean = false) {
+      axios.post('/api/restart', {re_login}).then((response: any) => {
         console.log(response)
         if (response.data.code === 0) {
-          ElMessage.success('重启成功，稍后重新扫码登录')
+          if (re_login) {
+            ElMessage.success('重启成功，稍后重新扫码登录')
+          } else {
+            ElMessage.success('重启成功')
+          }
+          
         } else {
           ElMessage.error(response.msg || '重启失败')
         }

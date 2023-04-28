@@ -6,6 +6,7 @@ from app import main
 from common import log
 import json
 import argparse
+import os
 
 
 http_app = Flask(__name__, static_url_path='')
@@ -28,13 +29,16 @@ def index():
 bot_process: multiprocessing.Process = None
 
 
-@http_app.route('/api/restart', methods=['GET'])
+@http_app.route('/api/restart', methods=['POST'])
 def restart():
     global bot_process
     if bot_process and bot_process.is_alive():
         bot_process.terminate()
     # 创建子进程对象
     bot_process = multiprocessing.Process(target=main)
+    if re_login:
+        # 删除itchat的缓存文件
+        os.remove('itchat.pkl')
     # 启动进程
     bot_process.start()
     return jsonify({
