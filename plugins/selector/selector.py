@@ -28,7 +28,7 @@ class Selector(Plugin):
         model=e_context['args'].get('model')
         for selector in self.config.get("selector", []):
             prefix = selector.get('prefix', [])
-            check_prefix=functions.check_prefix(e_context["context"], prefix)
+            check_prefix=functions.check_prefix(e_context["context"].strip(), prefix)
             if (check_prefix):
                 model=selector.get('model')
                 if isinstance(check_prefix, str):
