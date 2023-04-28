@@ -1,5 +1,5 @@
 <template>
-  <el-form ref="form" :model="config" label-width="100px" label-position="left">
+  <el-form ref="form" :model="config" label-width="140px" label-position="left">
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -111,33 +111,33 @@
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              温度，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0.7，最大不可以超过1
+              温度即是随机因子，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0.7，最大不可以超过1。如果希望结果更有创意可以尝试 0.9，或者希望有固定结果可以尝试 0.0。
             </p>
           </el-alert>
         </el-form-item>
-        <el-form-item label="频率惩罚">
+        <el-form-item label="重复度惩罚因子">
           <el-input-number
             v-model="config.model.openai.frequency_penalty"
-            :min="0"
-            :max="1"
-            :step="0.01"
+            :min="-2"
+            :max="2"
+            :step="0.1"
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              频率惩罚，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0，最大不可以超过1
+              -2.0 ~ 2.0 之间的数字，正值会根据新 tokens 在文本中的现有频率对其进行惩罚，从而降低模型逐字重复同一行的可能性。
             </p>
           </el-alert>
         </el-form-item>
-        <el-form-item label="存在惩罚">
+        <el-form-item label="控制主题的重复度">
           <el-input-number
             v-model="config.model.openai.presence_penalty"
-            :min="0"
-            :max="1"
-            :step="0.01"
+            :min="-2"
+            :max="2"
+            :step="0.1"
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              存在惩罚，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为1，最大不可以超过1
+              -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新 tokens，从而增加模型谈论新主题的可能性。
             </p>
           </el-alert>
         </el-form-item>
@@ -255,9 +255,12 @@
         <el-button type="primary" size="large" @click="getConfig">刷新配置</el-button>
         <el-button type="success" size="large" @click="onSubmit">保存</el-button>
         <el-popconfirm
+          width="300"
           title="提示：是否要重启并重新登录？(若登录没有失效，通常仅需要重启)"
           confirm-button-text="重启并重新登录"
           cancel-button-text="仅重启"
+          cancel-button-type="primary"
+          confirm-button-type="warning"
           @confirm="onRestart(true)"
           @cancel="onRestart(false)"
         >
@@ -392,7 +395,6 @@ export default {
               break
             }
           }
-          return
         } else {
           config.model.bing.cookies = [cookies]
         }
