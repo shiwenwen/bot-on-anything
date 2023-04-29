@@ -38,6 +38,7 @@ class BardModel(Model):
                     log.info('问题中包含中文，翻译回复%s为中文' % reply)
                     try:
                         openai.api_key = model_conf(const.OPEN_AI).get('api_key')
+                        openai.organization = model_conf(const.OPEN_AI).get('organization')
                         res = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",  # 对话模型的名称
                             messages=[

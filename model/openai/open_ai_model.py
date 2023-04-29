@@ -13,6 +13,7 @@ user_session = dict()
 class OpenAIModel(Model):
     def __init__(self):
         openai.api_key = model_conf(const.OPEN_AI).get('api_key')
+        openai.organization = model_conf(const.OPEN_AI).get('organization')
         api_base = model_conf(const.OPEN_AI).get('api_base')
         if api_base:
             openai.api_base = api_base

@@ -84,9 +84,13 @@
         <el-form-item label="API Key">
           <el-input v-model="config.model.openai.api_key" placeholder="OpenAI API Key" />
         </el-form-item>
+        <el-form-item label="Organization">
+          <el-input v-model="config.model.openai.organization" placeholder="OpenAI Organization" />
+        </el-form-item>
         <el-form-item label="模型">
           <el-select v-model="config.model.openai.model" placeholder="请选择">
             <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
+            <el-option label="gpt-4" value="gpt-4"></el-option>
             <!-- <el-option label="gpt-3.5" value="gpt-3.5"></el-option>
             <el-option label="gpt-3" value="gpt-3"></el-option>
             <el-option label="gpt-2" value="gpt-2"></el-option>
@@ -101,11 +105,11 @@
           <el-input-number
             v-model="config.model.openai.conversation_max_tokens"
             :min="1000"
-            :max="4096"
+            :max="8000"
           />
           <el-alert type="info" show-icon :closable="false">
             <p>
-              对话超过最大Token时，会进行记忆丢失，建议设置为4000，若不设置，则默认为4000，最大不可以超过4096
+              对话超过最大Token时，会进行记忆丢失，建议设置为4000，若不设置，则默认为4000，GTP-3最大不可以超过4K,GTP-4不能超过8K
             </p>
           </el-alert>
         </el-form-item>
@@ -345,6 +349,7 @@ export default {
           type: 'chatgpt',
           openai: {
             api_key: '',
+            organization: '',
             model: 'gpt-3.5-turbo',
             conversation_max_tokens: 4000,
             temperature: 0.75,
