@@ -210,6 +210,8 @@ class WechatChannel(Channel):
                 self.send(channel_conf_val(const.WECHAT, "group_chat_reply_prefix", "") + reply, msg['User']['UserName'])
 
     def check_prefix(self, content, prefix_list):
+        if not prefix_list or len(prefix_list) == 0:
+            return ''
         for prefix in prefix_list:
             if content.startswith(prefix):
                 return prefix
