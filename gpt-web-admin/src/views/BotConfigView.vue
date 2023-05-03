@@ -1,5 +1,6 @@
 <template>
-  <el-form ref="formRef" :model="config" label-width="140px" label-position="left" :rules="rules" inline-message status-icon>
+  <el-form ref="formRef" :model="config" label-width="140px" label-position="left" :rules="rules" inline-message
+    status-icon>
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -18,10 +19,7 @@
           </div>
         </template>
         <el-form-item label="单聊触发前缀">
-          <el-input
-            v-model="config.channel.wechat.single_chat_prefix"
-            placeholder="配置多个请使用英文“,”号分割"
-          />
+          <el-input v-model="config.channel.wechat.single_chat_prefix" placeholder="配置多个请使用英文“,”号分割" />
           <el-alert type="info" show-icon :closable="false">
             <p>
               单聊对话时，只有消息前缀匹配才会触发AI，避免单聊时对所有接收到的消息进行响应，配置多个请使用英文“,”号分割，若不配置，则默认所有对话都会进行回复。
@@ -29,19 +27,14 @@
           </el-alert>
         </el-form-item>
         <el-form-item label="单聊回复前缀">
-          <el-input
-            v-model="config.channel.wechat.single_chat_reply_prefix"
-            placeholder="单聊回复前缀，用于区分是否为AI回复"
-          />
+          <el-input v-model="config.channel.wechat.single_chat_reply_prefix" placeholder="单聊回复前缀，用于区分是否为AI回复" />
           <el-alert type="info" show-icon :closable="false">
             <p>单聊回复前缀，用于区分是否为AI回复，当AI回复时，会带上该前缀</p>
           </el-alert>
         </el-form-item>
         <el-form-item label="群聊白名单">
-          <el-input
-            v-model="config.channel.wechat.group_name_white_list"
-            placeholder="多个群名用英文“,”号分割，如开放所有群，请输入ALL_GROUP"
-          />
+          <el-input v-model="config.channel.wechat.group_name_white_list"
+            placeholder="多个群名用英文“,”号分割，如开放所有群，请输入ALL_GROUP" />
           <el-alert type="info" show-icon :closable="false">
             <p>
               群聊白名单，只有在白名单内的群里支持使用AI助手，多个群名用英文“,”号分割，如开放所有群，请输入ALL_GROUP
@@ -49,11 +42,25 @@
           </el-alert>
         </el-form-item>
         <el-form-item label="高级：群聊独立性格" prop="group_character_desc">
-          <el-input
-            v-model="config.channel.wechat.group_character_desc"
-            :autosize="{ minRows: 4, maxRows: 20 }"
-            type="textarea"
-          />
+          <el-input v-model="config.channel.wechat.group_character_desc" :autosize="{ minRows: 4, maxRows: 20 }"
+            type="textarea" />
+        </el-form-item>
+        <el-form-item>
+          <div class="button-item">
+            <el-popover placement="right" :width="400" trigger="click">
+              <template #reference>
+                <el-button type="primary" size="large" @click="getQrCode(true)">扫码登录</el-button>
+              </template>
+              <el-card class="box-card">
+                <template #header>
+                  <div class="card-header">
+                    <span>{{ qrcode_link ? '微信扫码登录' : '服务未启动，请重新启动服务' }}</span>
+                  </div>
+                </template>
+                <qrcode-vue :value="qrcode_link || '服务未启动，请重新启动服务'" :size="340" level="H" />
+              </el-card>
+            </el-popover>
+          </div>
         </el-form-item>
       </el-card>
     </el-card>
@@ -102,11 +109,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="对话最大Token长度">
-          <el-input-number
-            v-model="config.model.openai.conversation_max_tokens"
-            :min="1000"
-            :max="8000"
-          />
+          <el-input-number v-model="config.model.openai.conversation_max_tokens" :min="1000" :max="8000" />
           <el-alert type="info" show-icon :closable="false">
             <p>
               对话超过最大Token时，会进行记忆丢失，建议设置为4000，若不设置，则默认为4000，GTP-3最大不可以超过4K,GTP-4不能超过8K
@@ -114,12 +117,7 @@
           </el-alert>
         </el-form-item>
         <el-form-item label="温度">
-          <el-input-number
-            v-model="config.model.openai.temperature"
-            :min="0"
-            :max="1"
-            :step="0.01"
-          />
+          <el-input-number v-model="config.model.openai.temperature" :min="0" :max="1" :step="0.01" />
           <el-alert type="info" show-icon :closable="false">
             <p>
               温度即是随机因子，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0.7，最大不可以超过1。如果希望结果更有创意可以尝试
@@ -128,12 +126,7 @@
           </el-alert>
         </el-form-item>
         <el-form-item label="重复度惩罚因子">
-          <el-input-number
-            v-model="config.model.openai.frequency_penalty"
-            :min="-2"
-            :max="2"
-            :step="0.1"
-          />
+          <el-input-number v-model="config.model.openai.frequency_penalty" :min="-2" :max="2" :step="0.1" />
           <el-alert type="info" show-icon :closable="false">
             <p>
               -2.0 ~ 2.0 之间的数字，正值会根据新 tokens
@@ -142,12 +135,7 @@
           </el-alert>
         </el-form-item>
         <el-form-item label="控制主题的重复度">
-          <el-input-number
-            v-model="config.model.openai.presence_penalty"
-            :min="-2"
-            :max="2"
-            :step="0.1"
-          />
+          <el-input-number v-model="config.model.openai.presence_penalty" :min="-2" :max="2" :step="0.1" />
           <el-alert type="info" show-icon :closable="false">
             <p>
               -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新
@@ -156,12 +144,8 @@
           </el-alert>
         </el-form-item>
         <el-form-item label="角色设定">
-          <el-input
-            v-model="config.model.openai.character_desc"
-            placeholder="角色设定"
-            :autosize="{ minRows: 4, maxRows: 10 }"
-            type="textarea"
-          />
+          <el-input v-model="config.model.openai.character_desc" placeholder="角色设定"
+            :autosize="{ minRows: 4, maxRows: 10 }" type="textarea" />
           <el-alert type="success" :closable="false">
             <p>
               新增AI角色与性格指定，用于描述你的AI助手，如“你是ChatGPT,
@@ -177,12 +161,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="搜索数据条数">
-          <el-input-number
-            v-model="config.model.duckduckgo.results_num"
-            :min="0"
-            :max="20"
-            :step="1"
-          />
+          <el-input-number v-model="config.model.duckduckgo.results_num" :min="0" :max="20" :step="1" />
           <el-alert type="success" :closable="false">
             <p>
               新增GPT实时搜索引擎支持，设定最多搜索多少条结果进行学习。为避免Token过度消耗，最大不可以超过20
@@ -213,12 +192,8 @@
         </el-form-item>
 
         <el-form-item label="角色设定">
-          <el-input
-            v-model="config.model.bing.jailbreak_prompt"
-            placeholder="角色设定"
-            :autosize="{ minRows: 2, maxRows: 10 }"
-            type="textarea"
-          />
+          <el-input v-model="config.model.bing.jailbreak_prompt" placeholder="角色设定"
+            :autosize="{ minRows: 2, maxRows: 10 }" type="textarea" />
           <el-alert type="success" :closable="false">
             <p>
               开启越狱模式后生效，用于指定Bing角色设定，如：You're an AI assistant named Sydney.
@@ -235,11 +210,7 @@
         </el-form-item>
         <!-- cookies -->
         <el-form-item label="Cookie认证" prop="bing_cookies">
-          <el-input
-            v-model="config.model.bing.cookies"
-            :autosize="{ minRows: 4, maxRows: 20 }"
-            type="textarea"
-          />
+          <el-input v-model="config.model.bing.cookies" :autosize="{ minRows: 4, maxRows: 20 }" type="textarea" />
           <el-alert type="warning" show-icon :closable="false">
             <p>
               由于New
@@ -250,34 +221,13 @@
         </el-form-item>
       </el-card>
     </el-card>
-    <el-form-item class="button-item">
+    <el-form-item>
       <div class="button-item">
-        <el-popover placement="right" :width="400" trigger="click">
-          <template #reference>
-            <el-button type="" size="large" @click="getQrCode(true)">扫码登录</el-button>
-          </template>
-          <el-card class="box-card">
-            <template #header>
-              <div class="card-header">
-                <span>二维码</span>
-              </div>
-            </template>
-            <qrcode-vue :value="qrcode_link" :size="340" level="H" />
-          </el-card>
-        </el-popover>
-
         <el-button type="primary" size="large" @click="getConfig">刷新配置</el-button>
         <el-button type="success" size="large" @click="onSubmit">保存</el-button>
-        <el-popconfirm
-          width="300"
-          title="提示：是否要重启并重新登录？(若登录没有失效，通常仅需要重启)"
-          confirm-button-text="重启并重新登录"
-          cancel-button-text="仅重启"
-          cancel-button-type="primary"
-          confirm-button-type="warning"
-          @confirm="onRestart(true)"
-          @cancel="onRestart(false)"
-        >
+        <el-popconfirm width="300" title="提示：是否要重启并重新登录？(若登录没有失效，通常仅需要重启)" confirm-button-text="重启并重新登录"
+          cancel-button-text="仅重启" cancel-button-type="primary" confirm-button-type="warning" @confirm="onRestart(true)"
+          @cancel="onRestart(false)">
           <template #reference>
             <el-button type="warning" size="large">重新启动</el-button>
           </template>
@@ -397,7 +347,7 @@ export default {
               config.channel.wechat.group_character_desc,
               null,
               2
-            ) 
+            )
           }
           if (config.model.bing.cookies.length > 0) {
             config.model.bing.cookies = JSON.stringify(config.model.bing.cookies, null, 2)
@@ -542,9 +492,11 @@ export default {
 .box-card {
   margin-bottom: 10px;
 }
+
 .el-alert {
   margin-top: 5px;
 }
+
 .button-item {
   flex: 1;
   display: flex;

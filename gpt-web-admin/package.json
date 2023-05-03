@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check build-only",
+    "prod": "rm ../templates/index.html && rm -rf ../static/assets & rm ../static/favicon.ico & mv dist/index.html ../templates/index.html & mv dist/assets ../static/assets & mv dist/favicon.ico ../static/favicon.ico",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
