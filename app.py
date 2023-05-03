@@ -5,9 +5,11 @@ import config
 from channel import channel_factory
 from common import log, const
 from multiprocessing import Pool
-
+import os
 from plugins.plugin_manager import PluginManager
 
+
+os.environ['TZ'] = 'Asia/Shanghai'
 args = None
 
 

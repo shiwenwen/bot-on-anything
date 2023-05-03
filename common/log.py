@@ -7,22 +7,21 @@ import datetime
 
 SWITCH = True
 
-def _beijing_time(sec, what):
-    beijing_time = datetime.datetime.now() + datetime.timedelta(hours=8)
-    return beijing_time.timetuple()
+# def _beijing_time(secs: float | None = ...):
+#     beijing_time = datetime.datetime.now() + datetime.timedelta(hours=8)
+#     return beijing_time.timetuple()
 
 def _get_logger():
-    logging.Formatter.format = _beijing_time
     log = logging.getLogger('log')
     log.setLevel(logging.INFO)
     console_handle = logging.StreamHandler(sys.stdout)
     log_formatter = logging.Formatter('[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d] - %(message)s',
                                         datefmt='%Y-%m-%d %H:%M:%S')
-    log_formatter.converter = _beijing_time
-    console_handle.setFormatter(log_formatter)
+    # log_formatter.converter = _beijing_time
+    # console_handle.setFormatter(log_formatter)
     log.addHandler(console_handle)
     # 增加日志文件，每天一个日志文件，保留30天，超过30天的日志文件会被删除，以日期为后缀，如：log.2018-08-08，存储在logs目录下
-    file_handle = TimedRotatingFileHandler(filename='logs/log', when='D', interval=1, backupCount=30)
+    file_handle = TimedRotatingFileHandler(filename='logs/log', when='M', interval=1, backupCount=30)
     file_handle.setFormatter(log_formatter)
     log.addHandler(file_handle)
     return log

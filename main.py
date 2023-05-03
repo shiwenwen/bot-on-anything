@@ -9,6 +9,7 @@ import argparse
 import os
 
 
+os.environ['TZ'] = 'Asia/Shanghai'
 http_app = Flask(__name__, static_url_path='')
 # 自动重载模板文件
 http_app.jinja_env.auto_reload = True
@@ -23,6 +24,7 @@ qrcode_link = None
 
 @http_app.route('/', methods=['GET'])
 def index():
+    log.info('访问首页')
     return render_template('index.html')
 
 
