@@ -43,9 +43,7 @@ class ChatGPTModel(Model):
             group_name = context.get('group_name', None)
             character_desc = None
             if group_name:  # 群聊独立人格
-                log.info('[SSSSSSSSSSS] group_name={}'.format(group_name))
                 character_desc = channel_conf_val(const.WECHAT, 'group_character_desc', {}).get(group_name, None)
-                log.info('[SSSSSSSSSSS] group_character_desc={}'.format(character_desc))
             new_query = Session.build_session_query(query, from_user_id, additional, character_desc=character_desc)
             log.debug("[CHATGPT] session query={}".format(new_query))
 
