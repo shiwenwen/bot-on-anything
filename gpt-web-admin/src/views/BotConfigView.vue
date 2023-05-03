@@ -463,7 +463,7 @@ export default {
           this.config.channel.wechat.group_character_desc
         )
       } else {
-        config.channel.wechat.group_character_desc = []
+        config.channel.wechat.group_character_desc = {}
       }
       if (this.config.model.bing.cookies) {
         try {
