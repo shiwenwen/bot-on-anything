@@ -54,7 +54,7 @@
 
     "wechat": {
       "status_storage_dir": "itchat.pkl",
-      "receive_qrcode_api": "http://127.0.0.1:80/api/receive_qrcode",
+      "receive_qrcode_api": "http://127.0.0.1:81/api/receive_qrcode",
       "group_independent_context": false
     },
 
