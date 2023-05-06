@@ -218,6 +218,11 @@
               打开Cookie-Editor，导出Cookies位JSON数据，粘贴过来。Cookies有效期为14天，过期后需要重新获取。
             </p>
           </el-alert>
+          <el-alert :type="bing_cookies_expire === '已过期' ? 'error' : 'warning'" :closable="false">
+            <p>
+              过期时间：{{ bing_cookies_expire }}
+            </p>
+          </el-alert>
         </el-form-item>
       </el-card>
     </el-card>
@@ -241,6 +246,7 @@
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import axios from 'axios'
 import QrcodeVue from 'qrcode.vue'
+import moment from 'moment'
 
 export default {
   components: {
@@ -285,6 +291,7 @@ export default {
         ]
       },
       qrcode_link: '',
+      bing_cookies_expire: '',
       config: {
         channel: {
           type: 'wechat',
@@ -350,7 +357,16 @@ export default {
             )
           }
           if (config.model.bing.cookies.length > 0) {
+            
+            // moment 判断是否超过当前时间
+            const expire = moment(config.model.bing.cookies[0].expirationDate).isAfter(moment())
+            if (expire) {
+              this.bing_cookies_expire = '已过期'
+            } else {
+              this.bing_cookies_expire = moment(config.model.bing.cookies[0].expirationDate * 1000).format('YYYY-MM-DD HH:mm:ss')
+            }
             config.model.bing.cookies = JSON.stringify(config.model.bing.cookies, null, 2)
+            
           }
           if (config.model.bing.jailbreak_prompt.length > 0) {
             const temp = config.model.bing.jailbreak_prompt.split(
