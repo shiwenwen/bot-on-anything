@@ -1,4 +1,5 @@
 # encoding:utf-8
+import copy
 
 from model.model import Model
 from config import model_conf, common_conf_val, channel_conf_val
@@ -53,7 +54,7 @@ class ChatGPTModel(Model):
 
             reply_content = self.reply_text(new_query, from_user_id, 0)
             #log.debug("[CHATGPT] new_query={}, user={}, reply_cont={}".format(new_query, from_user_id, reply_content))
-            return ('【历史对话已超时，本次已开启新的对话】\n' + reply_content) if clear_session else reply_content
+            return ('【历史对话已超时，记忆已清除，本次已开启新的对话】\n' + reply_content) if clear_session else reply_content
 
         elif context.get('type', None) == 'IMAGE_CREATE':
             return self.create_img(query, 0)
@@ -237,7 +238,13 @@ class Session(object):
             session.append(additional_item)
         user_item = {'role': 'user', 'content': query, 'timestamp': datetime.datetime.now()}
         session.append(user_item)
-        return session, clear_session
+        # 深复制session
+        simple_session = copy.deepcopy(session)
+        # 删除simple_session中的timestamp
+        for item in simple_session:
+            if item.get('timestamp', None):
+                del item['timestamp']
+        return simple_session, clear_session
 
     @staticmethod
     def save_session(query, answer, user_id, used_tokens=0):
