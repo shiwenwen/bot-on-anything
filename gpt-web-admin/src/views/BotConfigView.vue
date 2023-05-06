@@ -116,7 +116,7 @@
             </p>
           </el-alert>
         </el-form-item>
-        <el-form-item label="对话超时时间">
+        <el-form-item label="对话超时时间（秒）">
           <el-input-number v-model="config.model.openai.timeout" :min="60" :max="86400" />
           <el-alert type="info" show-icon :closable="false">
             <p>
