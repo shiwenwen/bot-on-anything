@@ -116,9 +116,17 @@
             </p>
           </el-alert>
         </el-form-item>
+        <el-form-item label="对话超时时间">
+          <el-input-number v-model="config.model.openai.timeout" :min="60" :max="86400" />
+          <el-alert type="info" show-icon :closable="false">
+            <p>
+              当对话超时后，会自动清除之前的历史对话，以防止对话过长，且带上不必要的记忆造成Token的过度消耗。
+            </p>
+          </el-alert>
+        </el-form-item>
         <el-form-item label="温度">
           <el-input-number v-model="config.model.openai.temperature" :min="0" :max="1" :step="0.01" />
-          <el-alert type="info" show-icon :closable="false">
+          <el-alert type="warning" show-icon :closable="false">
             <p>
               温度即是随机因子，用于控制生成文本的多样性，值越大，生成的文本越多样，但是越不可控，建议设置为0.7，最大不可以超过1。如果希望结果更有创意可以尝试
               0.9，或者希望有固定结果可以尝试 0.0。
@@ -314,7 +322,8 @@ export default {
             presence_penalty: 1.0,
             character_desc:
               '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。当问起你是谁的时候，要附加告诉提问人，输入 #清除记忆 可以开始新的话题探索。输入 #画 可以为你画一张图片。',
-            image_size: '512x512'
+            image_size: '512x512',
+            timeout: 600
           },
           bing: {
             jailbreak: true,

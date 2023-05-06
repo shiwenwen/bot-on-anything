@@ -44,7 +44,7 @@ class ChatGPTModel(Model):
             character_desc = None
             if group_name:  # 群聊独立人格
                 character_desc = channel_conf_val(const.WECHAT, 'group_character_desc', {}).get(group_name, None)
-            new_query = Session.build_session_query(query, from_user_id, additional, character_desc=character_desc)
+            new_query, clear_session = Session.build_session_query(query, from_user_id, additional, character_desc=character_desc)
             log.debug("[CHATGPT] session query={}".format(new_query))
 
             # if context.get('stream'):
@@ -53,7 +53,7 @@ class ChatGPTModel(Model):
 
             reply_content = self.reply_text(new_query, from_user_id, 0)
             #log.debug("[CHATGPT] new_query={}, user={}, reply_cont={}".format(new_query, from_user_id, reply_content))
-            return reply_content
+            return ('【历史对话已超时，本次已开启新的对话】\n' + reply_content) if clear_session else reply_content
 
         elif context.get('type', None) == 'IMAGE_CREATE':
             return self.create_img(query, 0)
@@ -110,7 +110,7 @@ class ChatGPTModel(Model):
     async def reply_text_stream(self, query,  context, retry_count=0):
         try:
             user_id=context['from_user_id']
-            new_query = Session.build_session_query(query, user_id)
+            new_query, _ = Session.build_session_query(query, user_id)
             res = openai.ChatCompletion.create(
                 model= model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",  # 对话模型的名称
                 messages=new_query,
@@ -215,31 +215,42 @@ class Session(object):
         :param character_desc: character description
         :return: query content with conversaction
         '''
+        clear_session = False
         session = user_session.get(user_id, [])
+        if len(session) > 0:
+            timestamp = session[-1].get('timestamp', None)
+            if timestamp:
+                time_delta = datetime.datetime.now() - timestamp
+                if time_delta.seconds > model_conf(const.OPEN_AI).get("timeout", 5 * 60):
+                    # clear session
+                    clear_session = True
+                    user_session[user_id] = []
+                    session = []
         if len(session) == 0:
             system_prompt = character_desc if character_desc else model_conf(const.OPEN_AI).get("character_desc", "")
             system_item = {'role': 'system', 'content': system_prompt}
             session.append(system_item)
             user_session[user_id] = session
+
         if additional:
-            additional_item = {'role': 'user', 'content': additional}
+            additional_item = {'role': 'user', 'content': additional, 'timestamp': datetime.datetime.now()}
             session.append(additional_item)
-        user_item = {'role': 'user', 'content': query}
+        user_item = {'role': 'user', 'content': query, 'timestamp': datetime.datetime.now()}
         session.append(user_item)
-        return session
+        return session, clear_session
 
     @staticmethod
     def save_session(query, answer, user_id, used_tokens=0):
         has_delete = False
         max_tokens = model_conf(const.OPEN_AI).get('conversation_max_tokens')
         max_history_num = model_conf(const.OPEN_AI).get('max_history_num', None)
-        if not max_tokens or max_tokens > 4000:
+        if not max_tokens:
             # default value
             max_tokens = 4000
         session = user_session.get(user_id)
         if session:
             # append conversation
-            gpt_item = {'role': 'assistant', 'content': answer}
+            gpt_item = {'role': 'assistant', 'content': answer, 'timestamp': datetime.datetime.now()}
             session.append(gpt_item)
 
         if used_tokens > max_tokens and len(session) >= 3:

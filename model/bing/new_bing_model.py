@@ -111,7 +111,7 @@ class BingModel(Model):
                     openai.api_key = model_conf(const.OPEN_AI).get('api_key')
                     openai.organization = model_conf(const.OPEN_AI).get('organization')
                     res = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",  # 对话模型的名称
+                        model=model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",  # 对话模型的名称
                         messages=[
                             {"role": "user", "content": "翻译成英文：{}".format(query)}
                         ]
