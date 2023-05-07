@@ -7,7 +7,8 @@ from common import log
 from common import functions
 
 
-@plugins.register(name="Selector", desire_priority=99, hidden=True, desc="A model selector", version="0.1", author="RegimenArsenic")
+@plugins.register(name="Selector", desire_priority=99, hidden=True, desc="A model selector", version="0.1",
+                  author="RegimenArsenic")
 class Selector(Plugin):
     def __init__(self):
         super().__init__()
@@ -25,16 +26,16 @@ class Selector(Plugin):
         return self.handlers
 
     def select_model(self, e_context: EventContext):
-        model=e_context['args'].get('model')
+        model = e_context['args'].get('model')
         for selector in self.config.get("selector", []):
             prefix = selector.get('prefix', [])
-            check_prefix=functions.check_prefix(e_context["context"].strip(), prefix)
-            if (check_prefix):
-                model=selector.get('model')
+            check_prefix = functions.check_prefix(e_context["context"].strip(), prefix)
+            if check_prefix:
+                model = selector.get('model')
                 if isinstance(check_prefix, str):
                     e_context["context"] = e_context["context"].split(check_prefix, 1)[1].strip()
                 break
         log.debug(f"[Selector] select model {model}")
         e_context.action = EventAction.CONTINUE  # 事件继续，交付给下个插件或默认逻辑
-        e_context['args']['model']=model
+        e_context['args']['model'] = model
         return e_context

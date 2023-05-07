@@ -149,8 +149,8 @@ class WechatChannel(Channel):
             context['from_user_id'] = reply_user_id
             e_context = PluginManager().emit_event(EventContext(Event.ON_HANDLE_CONTEXT, {
                 'channel': self, 'context': query,  "args": context}))
-
-            reply = e_context['reply']
+            if e_context['args'].get('model') == const.BING:
+                self.send('正在搜索并生成回答...', reply_user_id)
             if not e_context.is_pass():
                 reply = super().build_reply_content(e_context["context"], e_context["args"])
                 e_context = PluginManager().emit_event(EventContext(Event.ON_DECORATE_REPLY, {
@@ -170,6 +170,7 @@ class WechatChannel(Channel):
             if not query:
                 return
             reply_user_id=context['from_user_id']
+            self.send('正在生成图像...', reply_user_id)
             img_urls = super().build_reply_content(query, context)
             if not img_urls:
                 return
@@ -197,7 +198,8 @@ class WechatChannel(Channel):
         context['from_user_id'] = msg['User']['UserName']
         e_context = PluginManager().emit_event(EventContext(Event.ON_HANDLE_CONTEXT, {
             'channel': self, 'context': query,  "args": context}))
-        reply = e_context['reply']
+        if e_context['args'].get('model') == const.BING:
+            self.send('@' + msg['ActualNickName'] + ' 正在搜索并生成回答...', msg['User']['UserName'])
         if not e_context.is_pass():
             group_independent_context = channel_conf_val(const.WECHAT, "group_independent_context", True)
             if group_independent_context:
