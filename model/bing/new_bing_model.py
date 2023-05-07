@@ -113,7 +113,8 @@ class BingModel(Model):
                     res = openai.ChatCompletion.create(
                         model=model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",  # 对话模型的名称
                         messages=[
-                            {"role": "user", "content": "翻译成英文：{}".format(query)}
+                            {"role": "system", "content": "从现在开始，你是一名中英翻译，你会根据我输入的中文内容，翻译成对应英文。请注意，你翻译后的内容主要服务于一个绘画AI，它只能理解具象的描述而非抽象的概念，同时根据你对绘画AI的理解，比如它可能的训练模型、自然语言处理方式等方面，进行翻译优化。由于我的描述可能会很散乱，不连贯，你需要综合考虑这些问题，然后对翻译后的英文内容再次优化或重组，从而使绘画AI更能清楚我在说什么。同时还需要注意一些特殊中文词语的意思，不能简单的进行字面翻译，如夫妻肺片不可以翻译成Husband and Wife Lung Slices而应该翻译成Sichuan Sliced Beef in Chili Sauce。请严格按照此条规则进行翻译，也只输出翻译后的英文内内容。"},
+                            {"role": "user", "content": query}
                         ]
                     )
                     query = res.choices[0]['message']['content']
