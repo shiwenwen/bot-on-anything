@@ -157,7 +157,11 @@ class WechatChannel(Channel):
                     'channel': self, 'context': context, 'reply': reply, "args": e_context["args"]}))
                 reply = e_context['reply']
                 if reply:
-                    self.send(channel_conf_val(const.WECHAT, "single_chat_reply_prefix") + reply, reply_user_id)
+                    if isinstance(reply, list):
+                        for r in reply:
+                            self.send(channel_conf_val(const.WECHAT, "single_chat_reply_prefix") + r, reply_user_id)
+                    else:
+                        self.send(channel_conf_val(const.WECHAT, "single_chat_reply_prefix") + reply, reply_user_id)
         except Exception as e:
             logger.exception(e)
 

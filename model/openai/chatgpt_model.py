@@ -54,7 +54,7 @@ class ChatGPTModel(Model):
 
             reply_content = self.reply_text(new_query, from_user_id, 0)
             #log.debug("[CHATGPT] new_query={}, user={}, reply_cont={}".format(new_query, from_user_id, reply_content))
-            return ('【历史对话已超时，记忆已清除，本次已开启新的对话】\n' + reply_content) if clear_session else reply_content
+            return ['【历史对话已超时，记忆已清除，本次已开启新的对话】', reply_content] if clear_session else reply_content
 
         elif context.get('type', None) == 'IMAGE_CREATE':
             return self.create_img(query, 0)
