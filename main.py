@@ -106,7 +106,7 @@ def query_qrcode():
 
 def _merge_dict(a:dict, b:dict, ignore_dict:dict):
     for k, v in b.items():
-        if isinstance(v, dict) and not ignore_dict.get(key, False):
+        if isinstance(v, dict) and not ignore_dict.get(k, False):
             a[k] = _merge_dict(a.get(k, {}), v, ignore_dict)
         else:
             a[k] = v
