@@ -58,7 +58,7 @@ def sava_config():
     with open('config.json', 'r') as f:
         config = json.load(f)
         # 修改配置
-        new_config = _merge_dict(config, json_data)
+        new_config = _merge_dict(config, json_data, {group_character_desc: True})
         # 写入本地的config.json文件
         with open('config.json', 'w') as f:
             json.dump(new_config, f, indent=3, ensure_ascii=False)
@@ -104,10 +104,10 @@ def query_qrcode():
     })
 
 
-def _merge_dict(a, b):
+def _merge_dict(a:dict, b:dict, ignore_dict:dict):
     for k, v in b.items():
-        if isinstance(v, dict):
-            a[k] = _merge_dict(a.get(k, {}), v)
+        if isinstance(v, dict) and not ignore_dict.get(key, False):
+            a[k] = _merge_dict(a.get(k, {}), v, ignore_dict)
         else:
             a[k] = v
     return a
