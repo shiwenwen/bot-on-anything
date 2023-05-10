@@ -212,8 +212,14 @@ class WechatChannel(Channel):
                 'channel': self, 'context': context, 'reply': reply, "args": e_context["args"]}))
             reply = e_context['reply']
             if reply:
-                reply = '@' + msg['ActualNickName'] + ' ' + reply.strip()
-                self.send(channel_conf_val(const.WECHAT, "group_chat_reply_prefix", "") + reply, msg['User']['UserName'])
+                if isinstance(reply, list):
+                    for r in reply:
+                        r = '@' + msg['ActualNickName'] + ' ' + r.strip()
+                        self.send(channel_conf_val(const.WECHAT, "group_chat_reply_prefix", "") + r, msg['User']['UserName'])
+                else:
+                    reply = '@' + msg['ActualNickName'] + ' ' + reply.strip()
+                    self.send(channel_conf_val(const.WECHAT, "group_chat_reply_prefix", "") + reply, msg['User']['UserName'])
+                
 
     def check_prefix(self, content, prefix_list):
         if not prefix_list or len(prefix_list) == 0:
