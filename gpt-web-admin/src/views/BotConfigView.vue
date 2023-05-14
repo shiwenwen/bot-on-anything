@@ -41,10 +41,44 @@
             </p>
           </el-alert>
         </el-form-item>
-        <el-form-item label="高级：群聊独立性格" prop="group_character_desc">
-          <el-input v-model="config.channel.wechat.group_character_desc" :autosize="{ minRows: 4, maxRows: 20 }"
-            type="textarea" />
-        </el-form-item>
+        <el-card class="box-card">
+          <template #header>
+            <div class="card-header">
+              <span>群聊高级设置</span>
+            </div>
+          </template>
+          <div v-for="(item, index) in config.channel.wechat.group" class="wechat-group-item">
+            <el-form-item label="群名">
+              <el-input v-model="item.title" />
+            </el-form-item>
+            <el-form-item label="角色设定">
+              <el-input v-model="item.character_desc" :autosize="{ minRows: 4, maxRows: 20 }" type="textarea" />
+            </el-form-item>
+            <el-form-item label="模型">
+              <el-select v-model="item.model" placeholder="请选择">
+                <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
+                <el-option label="gpt-4" value="gpt-4"></el-option>
+                <!-- <el-option label="gpt-3.5" value="gpt-3.5"></el-option>
+                <el-option label="gpt-3" value="gpt-3"></el-option>
+                <el-option label="gpt-2" value="gpt-2"></el-option>
+                <el-option label="gpt-j" value="gpt-j"></el-option>
+                <el-option label="davinci" value="davinci"></el-option>
+                <el-option label="curie" value="curie"></el-option>
+                <el-option label="babbage" value="babbage"></el-option>
+                <el-option label="ada" value="ada"></el-option> -->
+              </el-select>
+              <el-alert type="info" show-icon :closable="false">
+                <p>
+                  仅针对GTP模型
+                </p>
+              </el-alert>
+              <el-button type="" size="large" icon="Plus" @click="config.channel.wechat.group.splice(index, 1)">删除</el-button>
+            </el-form-item>
+          </div>
+          <div class="button-item" style="margin-top: 10px">
+            <el-button type="" size="large" icon="Plus" @click="config.channel.wechat.group.push({})">增加</el-button>
+          </div>
+        </el-card>
         <el-form-item>
           <div class="button-item">
             <el-popover placement="right" :width="400" trigger="click">
@@ -94,7 +128,7 @@
         <el-form-item label="Organization">
           <el-input v-model="config.model.openai.organization" placeholder="OpenAI Organization" />
         </el-form-item>
-        <el-form-item label="模型">
+        <el-form-item label="对话模型">
           <el-select v-model="config.model.openai.model" placeholder="请选择">
             <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
             <el-option label="gpt-4" value="gpt-4"></el-option>
@@ -255,10 +289,18 @@ import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import axios from 'axios'
 import QrcodeVue from 'qrcode.vue'
 import moment from 'moment'
+import { Plus } from '@element-plus/icons-vue'
+
+interface WechatGroupItem {
+  title?: string;
+  character_desc?: string;
+  model?: string;
+}
 
 export default {
   components: {
-    QrcodeVue
+    QrcodeVue,
+    Plus
   },
   data() {
     return {
@@ -279,23 +321,6 @@ export default {
             },
             trigger: 'change'
           }
-        ],
-        group_character_desc: [
-          {
-            validator: (rule: any, value: any, callback: any) => {
-              if (value) {
-                try {
-                  JSON.parse(value)
-                  callback()
-                } catch (error) {
-                  callback(new Error('群聊独立性格式错误'))
-                }
-              } else {
-                callback()
-              }
-            },
-            trigger: 'change'
-          }
         ]
       },
       qrcode_link: '',
@@ -307,7 +332,7 @@ export default {
             single_chat_prefix: 'BOT', // 多个
             single_chat_reply_prefix: '[🤖]',
             group_name_white_list: 'ALL_GROUP', // 多个
-            group_character_desc: ''
+            group: []
           }
         },
         model: {
@@ -358,15 +383,9 @@ export default {
             config.channel.wechat.group_name_white_list =
               config.channel.wechat.group_name_white_list.join(',')
           }
-          if (config.channel.wechat.group_character_desc) {
-            config.channel.wechat.group_character_desc = JSON.stringify(
-              config.channel.wechat.group_character_desc,
-              null,
-              2
-            )
-          }
+
           if (config.model.bing.cookies.length > 0) {
-            
+
             // moment 判断是否超过当前时间
             const expire = moment(config.model.bing.cookies[0].expirationDate).isAfter(moment())
             if (expire) {
@@ -375,7 +394,7 @@ export default {
               this.bing_cookies_expire = moment(config.model.bing.cookies[0].expirationDate * 1000).format('YYYY-MM-DD HH:mm:ss')
             }
             config.model.bing.cookies = JSON.stringify(config.model.bing.cookies, null, 2)
-            
+
           }
           if (config.model.bing.jailbreak_prompt.length > 0) {
             const temp = config.model.bing.jailbreak_prompt.split(
@@ -427,19 +446,7 @@ export default {
       } else {
         config.channel.wechat.group_name_white_list = []
       }
-      if (this.config.channel.wechat.group_character_desc) {
-        try {
-          JSON.parse(this.config.channel.wechat.group_character_desc)
-        } catch (error) {
-          ElMessage.error('群聊高级设置格式错误')
-          return
-        }
-        config.channel.wechat.group_character_desc = JSON.parse(
-          this.config.channel.wechat.group_character_desc
-        )
-      } else {
-        config.channel.wechat.group_character_desc = {}
-      }
+
       if (this.config.model.bing.cookies) {
         try {
           JSON.parse(this.config.model.bing.cookies)
@@ -527,5 +534,10 @@ export default {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+}
+.wechat-group-item {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ECECEC;
 }
 </style>
