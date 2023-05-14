@@ -47,14 +47,11 @@
               <span>群聊高级设置</span>
             </div>
           </template>
-          <div v-for="(item, index) in config.channel.wechat.group" class="wechat-group-item">
+          <div v-for="(item, index) in config.channel.wechat.group_settings" class="wechat-group-item" v-bind:key="item.title">
             <el-form-item label="群名">
               <el-input v-model="item.title" />
             </el-form-item>
-            <el-form-item label="角色设定">
-              <el-input v-model="item.character_desc" :autosize="{ minRows: 4, maxRows: 20 }" type="textarea" />
-            </el-form-item>
-            <el-form-item label="模型">
+            <el-form-item label="对话模型">
               <el-select v-model="item.model" placeholder="请选择">
                 <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
                 <el-option label="gpt-4" value="gpt-4"></el-option>
@@ -72,11 +69,37 @@
                   仅针对GTP模型
                 </p>
               </el-alert>
-              <el-button type="" size="large" icon="Plus" @click="config.channel.wechat.group.splice(index, 1)">删除</el-button>
             </el-form-item>
+            <el-form-item label="角色设定">
+              <el-input v-model="item.character_desc" :autosize="{ minRows: 4, maxRows: 20 }" type="textarea" />
+              <el-alert type="info" show-icon :closable="false">
+                <p>
+                  仅针对GTP模型
+                </p>
+              </el-alert>
+            </el-form-item>
+            <el-form-item label="对话最大Token长度">
+          <el-input-number v-model="item.conversation_max_tokens" :min="1000" :max="8000" />
+          <el-alert type="info" show-icon :closable="false">
+            <p>
+              仅针对GTP模型
+            </p>
+          </el-alert>
+        </el-form-item>
+        <el-form-item label="对话超时时间（秒）">
+          <el-input-number v-model="item.timeout" :min="60" :max="86400" />
+          <el-alert type="info" show-icon :closable="false">
+            <p>
+              仅针对GTP模型
+            </p>
+          </el-alert>
+        </el-form-item>
+            <div class="button-item" style="margin-top: 10px">
+                <el-button type="danger" size="large" icon="Delete" @click="config.channel.wechat.group_settings.splice(index, 1)">删除</el-button>
+              </div>
           </div>
           <div class="button-item" style="margin-top: 10px">
-            <el-button type="" size="large" icon="Plus" @click="config.channel.wechat.group.push({})">增加</el-button>
+            <el-button type="" size="large" icon="Plus" @click="config.channel.wechat.group_settings.push({title: '', character_desc: '', model: 'gpt-3.5-turbo', conversation_max_tokens: 4000, timeout: 1800})">增加</el-button>
           </div>
         </el-card>
         <el-form-item>
@@ -289,18 +312,10 @@ import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import axios from 'axios'
 import QrcodeVue from 'qrcode.vue'
 import moment from 'moment'
-import { Plus } from '@element-plus/icons-vue'
-
-interface WechatGroupItem {
-  title?: string;
-  character_desc?: string;
-  model?: string;
-}
 
 export default {
   components: {
     QrcodeVue,
-    Plus
   },
   data() {
     return {
@@ -332,7 +347,15 @@ export default {
             single_chat_prefix: 'BOT', // 多个
             single_chat_reply_prefix: '[🤖]',
             group_name_white_list: 'ALL_GROUP', // 多个
-            group: []
+            group_settings: [
+              {
+                title: '',
+                character_desc: '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。当问起你是谁的时候，要附加告诉提问人，输入 #清除记忆 可以开始新的话题探索。输入 #画 可以为你画一张图片。',
+                model: 'gpt-3.5-turbo',
+                conversation_max_tokens: 4000,
+                timeout: 1800
+              }
+            ]
           }
         },
         model: {
@@ -377,11 +400,31 @@ export default {
           const config = res.data.data
           if (config.channel.wechat.single_chat_prefix) {
             config.channel.wechat.single_chat_prefix =
-              config.channel.wechat.single_chat_prefix.join(',')
+            config.channel.wechat.single_chat_prefix.join(',')
           }
           if (config.channel.wechat.group_name_white_list) {
             config.channel.wechat.group_name_white_list =
-              config.channel.wechat.group_name_white_list.join(',')
+            config.channel.wechat.group_name_white_list.join(',')
+          }
+
+          if (config.channel.wechat.group_settings) {
+            const temp = []
+            for (const key in config.channel.wechat.group_settings) {
+              const item = config.channel.wechat.group_settings[key]
+              item.title = key
+              temp.push(item)
+            }
+            config.channel.wechat.group_settings = temp
+          } else {
+            config.channel.wechat.group_settings = [
+              {
+                title: '',
+                character_desc: '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。当问起你是谁的时候，要附加告诉提问人，输入 #清除记忆 可以开始新的话题探索。输入 #画 可以为你画一张图片。',
+                model: 'gpt-3.5-turbo',
+                conversation_max_tokens: 4000,
+                timeout: 1800
+              }
+            ]
           }
 
           if (config.model.bing.cookies.length > 0) {
@@ -445,6 +488,16 @@ export default {
           this.config.channel.wechat.group_name_white_list.split(',')
       } else {
         config.channel.wechat.group_name_white_list = []
+      }
+
+      if (this.config.channel.wechat.group_settings.length > 0) {
+        const temp:any = {}
+        for (const item of this.config.channel.wechat.group_settings) {
+          temp[item.title] = item
+        }
+        config.channel.wechat.group_settings = temp
+      } else {
+        config.channel.wechat.group_settings = {}
       }
 
       if (this.config.model.bing.cookies) {

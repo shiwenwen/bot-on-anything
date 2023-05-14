@@ -41,31 +41,36 @@ class ChatGPTModel(Model):
                 query = query.replace('#', '')
                 additional = self.get_text_from_web_search(query)
                 log.info('[WEB SEARCH] additional={}'.format(additional))
-            group_name = context.get('group_name', None)
-            character_desc = None
-            if group_name:  # 群聊独立人格
-                character_desc = channel_conf_val(const.WECHAT, 'group_character_desc', {}).get(group_name, None)
-            new_query, clear_session = Session.build_session_query(query, from_user_id, additional, character_desc=character_desc)
+            group_settings = context.get('group_settings', None)  # 群聊独立设置
+            new_query, clear_session = Session.build_session_query(query, from_user_id, additional, settings=group_settings)
             log.debug("[CHATGPT] session query={}".format(new_query))
 
             # if context.get('stream'):
             #     # reply in stream
             #     return self.reply_text_stream(query, new_query, from_user_id)
 
-            reply_content = self.reply_text(new_query, from_user_id, 0)
-            #log.debug("[CHATGPT] new_query={}, user={}, reply_cont={}".format(new_query, from_user_id, reply_content))
+            reply_content = self.reply_text(
+                new_query,
+                from_user_id,
+                0,
+                model=group_settings.get('model', "gpt-3.5-turbo") if group_settings else model_conf(const.OPEN_AI).get(
+                    "model", "gpt-3.5-turbo"),
+                conversation_max_tokens=group_settings.get('conversation_max_tokens', None) if group_settings else None)
+            # log.debug("[CHATGPT] new_query={}, user={}, reply_cont={}".format(new_query, from_user_id, reply_content))
             return ['【历史对话已超时，记忆已清除，本次已开启新的对话】', reply_content] if clear_session else reply_content
 
         elif context.get('type', None) == 'IMAGE_CREATE':
             return self.create_img(query, 0)
 
-    def reply_text(self, query, user_id, retry_count=0):
+    def reply_text(self, query, user_id, retry_count=0, model="gpt-3.5-turbo", conversation_max_tokens=None):
+        max_tokens = conversation_max_tokens if conversation_max_tokens else model_conf(const.OPEN_AI).get(
+            'conversation_max_tokens')
         try:
             response = openai.ChatCompletion.create(
-                model= model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",  # 对话模型的名称
+                model=model,  # 对话模型的名称
                 messages=query,
                 temperature=model_conf(const.OPEN_AI).get("temperature", 0.75),  # 熵值，在[0,1]之间，越大表示选取的候选词越随机，回复越具有不确定性，建议和top_p参数二选一使用，创意性任务越大越好，精确性任务越小越好
-                #max_tokens=4096,  # 回复最大的字符数，为输入和输出的总数
+                max_tokens=max_tokens,  # 回复最大的字符数，为输入和输出的总数
                 #top_p=model_conf(const.OPEN_AI).get("top_p", 0.7),,  #候选词列表。0.7 意味着只考虑前70%候选词的标记，建议和temperature参数二选一使用
                 frequency_penalty=model_conf(const.OPEN_AI).get("frequency_penalty", 0.0),  # [-2,2]之间，该值越大则越降低模型一行中的重复用词，更倾向于产生不同的内容
                 presence_penalty=model_conf(const.OPEN_AI).get("presence_penalty", 1.0)  # [-2,2]之间，该值越大则越不受输入限制，将鼓励模型生成输入中不存在的新词，更倾向于产生不同的内容
@@ -73,10 +78,11 @@ class ChatGPTModel(Model):
             reply_content = response.choices[0]['message']['content']
             used_token = response['usage']['total_tokens']
             log.debug(response)
-            log.info("[CHATGPT] reply={}", reply_content)
+            log.info("[CHATGPT] model={} max_tokens={} used_token={} reply={}", model, max_tokens, used_token, reply_content)
             if reply_content:
                 # save conversation
-                has_delete = Session.save_session(query, reply_content, user_id, used_token)
+                has_delete = Session.save_session(query, reply_content, user_id, used_token,
+                                                  conversation_max_tokens=conversation_max_tokens)
                 tips = '\n\n【提示：由于对话长度限制，我丢弃了本次对话最早的一些记忆来保障对话的继续进行。如果我的回答依然不够完整，你可以对我说：“继续”让我接着回答，或者”#清除记忆 “来开始新的对话】' if has_delete else ''
             return response.choices[0]['message']['content'] + tips
         except openai.error.RateLimitError as e:
@@ -201,7 +207,7 @@ class ChatGPTModel(Model):
 
 class Session(object):
     @staticmethod
-    def build_session_query(query, user_id, additional=None, character_desc=None):
+    def build_session_query(query, user_id, additional=None, settings=None):
         '''
         build query with conversation history
         e.g.  [
@@ -213,16 +219,19 @@ class Session(object):
         :param query: query content
         :param user_id: from user id
         :param additional: additional info
-        :param character_desc: character description
+        :param settings: settings
         :return: query content with conversaction
         '''
+
+        character_desc = settings.get("character_desc", None) if settings else None
+        timeout = settings.get("timeout", None) if settings else model_conf(const.OPEN_AI).get("timeout", 5 * 60)
         clear_session = False
         session = user_session.get(user_id, [])
         if len(session) > 0:
             timestamp = session[-1].get('timestamp', None)
             if timestamp:
                 time_delta = datetime.datetime.now() - timestamp
-                if time_delta.seconds > model_conf(const.OPEN_AI).get("timeout", 5 * 60):
+                if time_delta.seconds > timeout:
                     # clear session
                     clear_session = True
                     user_session[user_id] = []
@@ -247,9 +256,9 @@ class Session(object):
         return simple_session, clear_session
 
     @staticmethod
-    def save_session(query, answer, user_id, used_tokens=0):
+    def save_session(query, answer, user_id, used_tokens=0, conversation_max_tokens=None):
         has_delete = False
-        max_tokens = model_conf(const.OPEN_AI).get('conversation_max_tokens')
+        max_tokens = conversation_max_tokens if conversation_max_tokens else model_conf(const.OPEN_AI).get('conversation_max_tokens')
         max_history_num = model_conf(const.OPEN_AI).get('max_history_num', None)
         if not max_tokens:
             # default value

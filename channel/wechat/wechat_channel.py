@@ -206,7 +206,9 @@ class WechatChannel(Channel):
                 context['from_user_id'] = msg['ActualUserName']
             else:
                 context['from_user_id'] = msg['User']['UserName']
-            context['group_name'] = msg['User'].get('NickName', None)
+            group_name = msg['User'].get('NickName', None)
+            context['group_name'] = group_name
+            context['group_settings'] = channel_conf_val(const.WECHAT, "group_settings", {}).get(group_name, None)
             reply = super().build_reply_content(e_context["context"], e_context["args"])
             e_context = PluginManager().emit_event(EventContext(Event.ON_DECORATE_REPLY, {
                 'channel': self, 'context': context, 'reply': reply, "args": e_context["args"]}))
