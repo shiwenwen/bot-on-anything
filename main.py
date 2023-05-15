@@ -16,6 +16,8 @@ http_app.jinja_env.auto_reload = True
 http_app.config['TEMPLATES_AUTO_RELOAD'] = True
 # 设置静态文件缓存过期时间
 http_app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(seconds=1)
+# 机器人进程
+bot_process: multiprocessing.Process = None
 
 
 # 微信二维码链接
@@ -28,27 +30,30 @@ def index():
     return render_template('index.html')
 
 
-bot_process: multiprocessing.Process = None
-
-
 @http_app.route('/api/restart', methods=['POST'])
 def restart():
-    global bot_process
-    if bot_process and bot_process.is_alive():
-        bot_process.terminate()
-    # 创建子进程对象
-    bot_process = multiprocessing.Process(target=main)
     json_data = request.get_json()
     re_login = json_data.get('re_login', False)
     if re_login:
         # 删除itchat的缓存文件
         os.remove('itchat.pkl')
-    # 启动进程
-    bot_process.start()
+    _restart()
     return jsonify({
         'code': 0,
         'msg': 'restart success'
     })
+
+
+def _restart():
+    global bot_process
+    if bot_process and bot_process.is_alive():
+        log.info('BOT已启动，正在关闭')
+        bot_process.terminate()
+    # 创建子进程对象
+    bot_process = multiprocessing.Process(target=main)
+    # 启动进程
+    log.info('启动BOT进程')
+    bot_process.start()
 
 
 @http_app.route('/api/save_config', methods=['POST'])
@@ -120,5 +125,6 @@ if __name__ == '__main__':
     parser.add_argument("--host", type=str, default='0.0.0.0', help="host")
     parser.add_argument("--port", type=int, default=5000, help="port")
     args = parser.parse_args()
+    _restart()
     http_app.run(debug=args.debug, host=args.host, port=args.port)
 
