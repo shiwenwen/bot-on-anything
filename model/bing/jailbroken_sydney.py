@@ -50,7 +50,7 @@ class SydneyBot(Chatbot):
         message_id: str = None
     ) -> dict:
         # 开启新对话
-        self.chat_hub = SydneyHub(_Conversation(self.cookies, self.proxy))
+        self.chat_hub = SydneyHub(_Conversation(proxy=self.proxy, cookies=self.cookies))
         self.parent_message_id = message_id if message_id != None else uuid.uuid4()
         # 构造历史对话字符串,更新SydneyHubRequest的历史对话
         conversation = self.conversations_cache.get(self.conversation_key)
