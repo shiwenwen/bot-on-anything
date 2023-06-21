@@ -9,23 +9,39 @@ import openai
 import time
 import datetime
 from duckduckgo_search import ddg
-
+import os
 
 user_session = dict()
+
 
 # OpenAI对话模型API (可用)
 class ChatGPTModel(Model):
     def __init__(self):
-        openai.api_key = model_conf(const.OPEN_AI).get('api_key')
-        openai.organization = model_conf(const.OPEN_AI).get('organization')
+        api_key = model_conf(const.OPEN_AI).get('api_key')
+        openai.api_key = api_key
+        os.environ["OPENAI_API_KEY"] = api_key
+        organization = model_conf(const.OPEN_AI).get('organization')
+        openai.organization = organization
+        os.environ['OPENAI_ORGANIZATION'] = organization
         api_base = model_conf(const.OPEN_AI).get('api_base')
+        api_type = model_conf(const.OPEN_AI).get('api_type')
+        api_version = model_conf(const.OPEN_AI).get('api_version')
         if api_base:
             openai.api_base = api_base
+            os.environ["OPENAI_API_BASE"] = api_base
+        if api_type:
+            openai.api_type = api_type
+            os.environ["OPENAI_API_TYPE"] = api_type
+        if api_version:
+            openai.api_version = api_version
+            os.environ["OPENAI_API_VERSION"] = api_version
+
         proxy = model_conf(const.OPEN_AI).get('proxy')
         if proxy:
             openai.proxy = proxy
         log.info("[CHATGPT] api_base={} proxy={}".format(
             api_base, proxy))
+
     def reply(self, query, context=None):
         # acquire reply content
         if not context or not context.get('type') or context.get('type') == 'TEXT':

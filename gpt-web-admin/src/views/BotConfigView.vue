@@ -145,6 +145,21 @@
             <span>ChatGPT配置</span>
           </div>
         </template>
+        <el-form-item label="API Type">
+          <el-select v-model="config.model.openai.api_type" placeholder="请选择">
+            <el-option label="openai" value="openai"></el-option>
+            <el-option label="azure" value="azure"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="API Version">
+          <el-select v-model="config.model.openai.api_version" placeholder="请选择">
+            <el-option label="2023-05-15" value="2023-05-15"></el-option>
+            <el-option label="2023-03-15-preview" value="2023-03-15-preview"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="API Base">
+          <el-input v-model="config.model.openai.api_base" placeholder="OpenAI API Base" />
+        </el-form-item>
         <el-form-item label="API Key">
           <el-input v-model="config.model.openai.api_key" placeholder="OpenAI API Key" />
         </el-form-item>
@@ -154,6 +169,7 @@
         <el-form-item label="对话模型">
           <el-select v-model="config.model.openai.model" placeholder="请选择">
             <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
+            <el-option label="gpt-35-turbo" value="gpt-35-turbo"></el-option>
             <el-option label="gpt-4" value="gpt-4"></el-option>
             <!-- <el-option label="gpt-3.5" value="gpt-3.5"></el-option>
             <el-option label="gpt-3" value="gpt-3"></el-option>
@@ -170,6 +186,14 @@
           <el-alert type="info" show-icon :closable="false">
             <p>
               对话超过最大Token时，会进行记忆丢失，建议设置为4000，若不设置，则默认为4000，GTP-3最大不可以超过4K,GTP-4不能超过8K
+            </p>
+          </el-alert>
+        </el-form-item>
+        <el-form-item label="对话最大轮次">
+          <el-input-number v-model="config.model.openai.max_history_num" :min="0" :max="1000" />
+          <el-alert type="info" show-icon :closable="false">
+            <p>
+              当对话超时后，会自动清除之前的历史对话，以防止对话过长，且带上不必要的记忆造成Token的过度消耗。
             </p>
           </el-alert>
         </el-form-item>
@@ -361,10 +385,14 @@ export default {
         model: {
           type: 'chatgpt',
           openai: {
+            api_type: 'openai',
+            api_version: '2023-05-15',
+            api_base: '',
             api_key: '',
             organization: '',
             model: 'gpt-3.5-turbo',
             conversation_max_tokens: 4000,
+            max_history_num: 5,
             temperature: 0.75,
             frequency_penalty: 0.0,
             presence_penalty: 1.0,
