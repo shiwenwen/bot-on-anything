@@ -55,6 +55,7 @@
               <el-select v-model="item.model" placeholder="请选择">
                 <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
                 <el-option label="gpt-35-turbo" value="gpt-35-turbo"></el-option>
+                <el-option label="gpt-35-turbo-16k" value="gpt-35-turbo-16k"></el-option>
                 <el-option label="gpt-4" value="gpt-4"></el-option>
                 <!-- <el-option label="gpt-3.5" value="gpt-3.5"></el-option>
                 <el-option label="gpt-3" value="gpt-3"></el-option>
@@ -130,7 +131,7 @@
       </template>
       <el-form-item label="默认模型">
         <el-select v-model="config.model.type" placeholder="请选择">
-          <el-option label="ChatGPT" value="openai"></el-option>
+          <el-option label="ChatGPT" value="chatgpt"></el-option>
           <el-option label="New Bing" value="bing"></el-option>
         </el-select>
         <el-alert type="success" :closable="false">
@@ -172,6 +173,7 @@
           <el-select v-model="config.model.openai.model" placeholder="请选择">
             <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
             <el-option label="gpt-35-turbo" value="gpt-35-turbo"></el-option>
+            <el-option label="gpt-35-turbo-16k" value="gpt-35-turbo-16k"></el-option>
             <el-option label="gpt-4" value="gpt-4"></el-option>
             <!-- <el-option label="gpt-3.5" value="gpt-3.5"></el-option>
             <el-option label="gpt-3" value="gpt-3"></el-option>
