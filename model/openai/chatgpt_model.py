@@ -21,11 +21,12 @@ class ChatGPTModel(Model):
         openai.api_key = api_key
         os.environ["OPENAI_API_KEY"] = api_key
         organization = model_conf(const.OPEN_AI).get('organization')
-        openai.organization = organization
-        os.environ['OPENAI_ORGANIZATION'] = organization
         api_base = model_conf(const.OPEN_AI).get('api_base')
         api_type = model_conf(const.OPEN_AI).get('api_type')
         api_version = model_conf(const.OPEN_AI).get('api_version')
+        if organization:
+            openai.organization = organization
+            os.environ['OPENAI_ORGANIZATION'] = organization
         if api_base:
             openai.api_base = api_base
             os.environ["OPENAI_API_BASE"] = api_base
@@ -39,8 +40,8 @@ class ChatGPTModel(Model):
         proxy = model_conf(const.OPEN_AI).get('proxy')
         if proxy:
             openai.proxy = proxy
-        log.info("[CHATGPT] api_base={} proxy={}".format(
-            api_base, proxy))
+        log.info("[CHATGPT] api_base={} proxy={} api_type={} api_version={}".format(
+            api_base, proxy, api_type, api_version))
 
     def reply(self, query, context=None):
         # acquire reply content
@@ -84,6 +85,7 @@ class ChatGPTModel(Model):
         try:
             response = openai.ChatCompletion.create(
                 model=model,  # 对话模型的名称
+                engine=model,
                 messages=query,
                 temperature=model_conf(const.OPEN_AI).get("temperature", 0.75),  # 熵值，在[0,1]之间，越大表示选取的候选词越随机，回复越具有不确定性，建议和top_p参数二选一使用，创意性任务越大越好，精确性任务越小越好
                 #max_tokens=max_tokens,  # 回复最大的字符数，为输入和输出的总数
@@ -136,7 +138,8 @@ class ChatGPTModel(Model):
             user_id=context['from_user_id']
             new_query, _ = Session.build_session_query(query, user_id)
             res = openai.ChatCompletion.create(
-                model= model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",  # 对话模型的名称
+                model=model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",  # 对话模型的名称
+                engine=model_conf(const.OPEN_AI).get("model") or "gpt-3.5-turbo",
                 messages=new_query,
                 temperature=model_conf(const.OPEN_AI).get("temperature", 0.75),  # 熵值，在[0,1]之间，越大表示选取的候选词越随机，回复越具有不确定性，建议和top_p参数二选一使用，创意性任务越大越好，精确性任务越小越好
                 #max_tokens=4096,  # 回复最大的字符数，为输入和输出的总数
