@@ -54,7 +54,7 @@
             <el-form-item label="对话模型">
               <el-select v-model="item.model" placeholder="请选择">
                 <el-option label="gpt-3.5-turbo" value="gpt-3.5-turbo"></el-option>
-                <el-option label="gpt-35-turbo" value="gpt-3.5-turbo"></el-option>
+                <el-option label="gpt-35-turbo" value="gpt-35-turbo"></el-option>
                 <el-option label="gpt-4" value="gpt-4"></el-option>
                 <!-- <el-option label="gpt-3.5" value="gpt-3.5"></el-option>
                 <el-option label="gpt-3" value="gpt-3"></el-option>
