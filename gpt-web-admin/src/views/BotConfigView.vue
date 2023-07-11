@@ -154,7 +154,7 @@
         </el-form-item>
         <el-form-item label="API Version">
           <el-select v-model="config.model.openai.api_version" placeholder="请选择">
-            <el-option label="2023-05-15" value="2023-06-13"></el-option>
+            <el-option label="2023-06-13" value="2023-06-13"></el-option>
             <el-option label="2023-05-15" value="2023-05-15"></el-option>
             <el-option label="2023-03-15-preview" value="2023-03-15-preview"></el-option>
           </el-select>
